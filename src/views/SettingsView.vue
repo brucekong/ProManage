@@ -99,7 +99,7 @@ async function saveAndCheckUpdates() {
           v-model="form.update_endpoint"
           type="text"
           class="setting-input setting-input-wide"
-          placeholder="https://downloads.example.com/prostation/latest.json"
+          placeholder="https://github.com/brucekong/ProManage/releases/latest/download/latest.json"
         />
       </div>
       <div class="setting-row setting-row-stack">
@@ -115,7 +115,7 @@ async function saveAndCheckUpdates() {
         <button class="btn-secondary" @click="saveAndCheckUpdates">
           Check for Updates
         </button>
-        <span class="update-hint">{{ store.appUpdateMessage || "Use an HTTPS latest.json feed and the matching public key." }}</span>
+        <span class="update-hint">{{ store.appUpdateMessage || "The GitHub Releases feed is prefilled. Paste the matching updater public key to enable checks." }}</span>
       </div>
     </section>
 

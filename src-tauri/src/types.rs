@@ -68,7 +68,9 @@ impl Default for AppConfig {
             minimize_to_tray: true,
             auto_restore: false,
             auto_check_updates: true,
-            update_endpoint: String::new(),
+            update_endpoint:
+                "https://github.com/brucekong/ProManage/releases/latest/download/latest.json"
+                    .to_string(),
             updater_pubkey: String::new(),
         }
     }

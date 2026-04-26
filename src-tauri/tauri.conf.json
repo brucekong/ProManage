@@ -42,6 +42,9 @@
     ]
   },
   "plugins": {
-    "updater": {}
+    "updater": {
+      "pubkey": "",
+      "endpoints": []
+    }
   }
 }
