@@ -1,0 +1,34 @@
+[package]
+name = "pro-station"
+version = "0.1.0"
+description = "Frontend Multi-Project Management Tool"
+authors = ["you"]
+edition = "2021"
+
+[lib]
+name = "pro_station_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-opener = "2"
+tauri-plugin-updater = "2"
+tauri-plugin-notification = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-shell = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sysinfo = "0.33"
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+chrono = { version = "0.4", features = ["serde"] }
+notify = "7"
+uuid = { version = "1", features = ["v4"] }
+portpicker = "0.1"
+thiserror = "2"
+portable-pty = "0.8"
+url = "2"

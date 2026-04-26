@@ -1,0 +1,15 @@
+{
+  "version": "0.1.1",
+  "notes": "Improved updater flow and project panel interactions.",
+  "pub_date": "2026-04-26T12:00:00Z",
+  "platforms": {
+    "darwin-aarch64": {
+      "signature": "PASTE_THE_CONTENTS_OF_THE_GENERATED_SIG_FILE_HERE",
+      "url": "https://downloads.example.com/prostation/ProStation_0.1.1_aarch64.app.tar.gz"
+    },
+    "darwin-x86_64": {
+      "signature": "PASTE_THE_CONTENTS_OF_THE_GENERATED_SIG_FILE_HERE",
+      "url": "https://downloads.example.com/prostation/ProStation_0.1.1_x64.app.tar.gz"
+    }
+  }
+}
