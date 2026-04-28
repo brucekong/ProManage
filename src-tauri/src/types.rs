@@ -1,5 +1,9 @@
 use serde::{Deserialize, Serialize};
 
+fn default_project_kind() -> String {
+    "folder".to_string()
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum ProjectStatus {
     Running,
@@ -12,7 +16,11 @@ pub struct Project {
     pub id: String,
     pub name: String,
     pub path: String,
+    #[serde(default = "default_project_kind")]
+    pub project_kind: String,
     pub command: String,
+    #[serde(default)]
+    pub has_custom_command: bool,
     pub port: u16,
     pub group: String,
     pub note: String,
@@ -29,9 +37,13 @@ pub struct ProjectConfig {
     pub id: String,
     pub name: String,
     pub path: String,
+    #[serde(default = "default_project_kind")]
+    pub project_kind: String,
     pub command: String,
     #[serde(default)]
     pub scripts: Vec<(String, String)>,
+    #[serde(default)]
+    pub has_custom_command: bool,
     pub port: u16,
     pub group: String,
     pub note: String,
@@ -55,6 +67,8 @@ pub struct AppConfig {
     pub auto_check_updates: bool,
     pub update_endpoint: String,
     pub updater_pubkey: String,
+    pub ide_vscode_command: String,
+    pub ide_antigravity_command: String,
 }
 
 impl Default for AppConfig {
@@ -72,6 +86,8 @@ impl Default for AppConfig {
                 "https://github.com/brucekong/ProManage/releases/latest/download/latest.json"
                     .to_string(),
             updater_pubkey: String::new(),
+            ide_vscode_command: "code".to_string(),
+            ide_antigravity_command: "ag".to_string(),
         }
     }
 }

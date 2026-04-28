@@ -4,8 +4,10 @@ export interface ProjectConfig {
   id: string;
   name: string;
   path: string;
+  project_kind?: "folder" | "workspace";
   command: string;
   scripts?: [string, string][];
+  has_custom_command?: boolean;
   port: number;
   group: string;
   note: string;
@@ -19,8 +21,10 @@ export interface Project {
   id: string;
   name: string;
   path: string;
+  project_kind?: "folder" | "workspace";
   command: string;
   scripts?: [string, string][];
+  has_custom_command?: boolean;
   port: number;
   group: string;
   note: string;
@@ -42,6 +46,8 @@ export interface AppConfig {
   auto_check_updates: boolean;
   update_endpoint: string;
   updater_pubkey: string;
+  ide_vscode_command: string;
+  ide_antigravity_command: string;
 }
 
 export interface AppUpdateInfo {
@@ -56,4 +62,13 @@ export interface PortInfo {
   in_use: boolean;
   pid: number | null;
   process_name: string | null;
+}
+
+export interface GitStatusInfo {
+  project_id: string;
+  branch: string | null;
+  dirty: boolean;
+  ahead: number;
+  behind: number;
+  has_git: boolean;
 }

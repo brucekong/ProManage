@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, computed, shallowRef } from "vue";
 import { listen } from "@tauri-apps/api/event";
-import type { ProjectConfig, AppConfig, AppUpdateInfo } from "../types/project";
+import type { ProjectConfig, AppConfig, AppUpdateInfo, GitStatusInfo } from "../types/project";
 import { isRuntimeReady } from "../utils/ports";
 import * as api from "../api/commands";
 
@@ -45,8 +45,11 @@ export const useProjectStore = defineStore("project", () => {
     auto_check_updates: true,
     update_endpoint: "https://github.com/brucekong/ProManage/releases/latest/download/latest.json",
     updater_pubkey: "",
+    ide_vscode_command: "code",
+    ide_antigravity_command: "ag",
   });
   const processStatuses = ref<Record<string, string>>({});
+  const gitStatuses = ref<Record<string, GitStatusInfo>>({});
   const processOutputs = shallowRef<Record<string, ProcessOutputLine[]>>({});
   const processOutputVersions = ref<Record<string, number>>({});
   const processStartLineOffsets = ref<Record<string, number>>({});
@@ -87,6 +90,15 @@ export const useProjectStore = defineStore("project", () => {
   }
 
   function scriptLabel(name: string) {
+    if (name.includes(":")) {
+      const parts = name.split(":");
+      const folder = parts[0];
+      const script = parts[parts.length - 1];
+      if (!["web", "api", "dev", "start", "serve", "build"].includes(folder.toLowerCase())) {
+        return `${folder} · ${script}`;
+      }
+    }
+
     const kind = scriptKind(name);
     if (kind === "api") return "API";
     if (kind === "web") return "Web";
@@ -123,6 +135,10 @@ export const useProjectStore = defineStore("project", () => {
       }));
 
     if (runnable.length === 0) {
+      if (project.project_kind === "workspace" || !project.has_custom_command) {
+        return [];
+      }
+
       return [{
         id: processId(project),
         name: "default",
@@ -255,9 +271,21 @@ export const useProjectStore = defineStore("project", () => {
   async function refreshStatuses() {
     try {
       const statuses = await api.getProcessStatuses();
-      processStatuses.value = Object.fromEntries(statuses);
+      processStatuses.value = {
+        ...processStatuses.value,
+        ...Object.fromEntries(statuses),
+      };
     } catch (e) {
       console.error("Failed to refresh statuses:", e);
+    }
+  }
+
+  async function refreshGitStatuses() {
+    try {
+      const statuses = await api.getGitStatuses();
+      gitStatuses.value = Object.fromEntries(statuses.map((status) => [status.project_id, status]));
+    } catch (e) {
+      console.error("Failed to refresh git statuses:", e);
     }
   }
 
@@ -293,6 +321,46 @@ export const useProjectStore = defineStore("project", () => {
   async function updateProject(project: ProjectConfig) {
     const updated = await api.updateProject(project);
     projects.value = updated;
+  }
+
+  async function reorderProjects(sourceId: string, targetId: string) {
+    if (sourceId === targetId) return;
+
+    const previous = [...projects.value];
+    const next = [...projects.value];
+    const sourceIndex = next.findIndex((project) => project.id === sourceId);
+    const targetIndex = next.findIndex((project) => project.id === targetId);
+    if (sourceIndex < 0 || targetIndex < 0) return;
+
+    const [moved] = next.splice(sourceIndex, 1);
+    next.splice(targetIndex, 0, moved);
+    projects.value = next;
+
+    try {
+      projects.value = await api.reorderProjects(next.map((project) => project.id));
+    } catch (error) {
+      projects.value = previous;
+      throw error;
+    }
+  }
+
+  function moveProject(sourceId: string, targetId: string, placement: "before" | "after") {
+    if (sourceId === targetId) return;
+
+    const next = [...projects.value];
+    const sourceIndex = next.findIndex((project) => project.id === sourceId);
+    const targetIndex = next.findIndex((project) => project.id === targetId);
+    if (sourceIndex < 0 || targetIndex < 0) return;
+
+    const [moved] = next.splice(sourceIndex, 1);
+    const adjustedTargetIndex = next.findIndex((project) => project.id === targetId);
+    const insertIndex = placement === "after" ? adjustedTargetIndex + 1 : adjustedTargetIndex;
+    next.splice(insertIndex, 0, moved);
+    projects.value = next;
+  }
+
+  async function saveProjectOrder() {
+    projects.value = await api.reorderProjects(projects.value.map((project) => project.id));
   }
 
   function selectProject(id: string) {
@@ -369,8 +437,31 @@ export const useProjectStore = defineStore("project", () => {
   }
 
   async function startAll() {
-    await api.startAllProjects();
-    await refreshStatuses();
+    for (const project of projects.value) {
+      const targets = runTargetsForProject(project);
+      if (targets.length === 0) continue;
+
+      for (const target of targets) {
+        if (["Starting", "Running"].includes(processStatuses.value[target.id] || "Stopped")) {
+          continue;
+        }
+
+        try {
+          if (target.name === "default") {
+            await startProject(project.id);
+          } else {
+            await startProjectCommand(
+              project.id,
+              target.id,
+              `${project.name} · ${target.label}`,
+              target.command
+            );
+          }
+        } catch (error) {
+          console.error(`Failed to start ${project.name} · ${target.label}:`, error);
+        }
+      }
+    }
   }
 
   async function stopAll() {
@@ -549,6 +640,7 @@ export const useProjectStore = defineStore("project", () => {
     projects,
     config,
     processStatuses,
+    gitStatuses,
     processOutputs,
     activeTab,
     selectedProjectId,
@@ -569,10 +661,14 @@ export const useProjectStore = defineStore("project", () => {
     loadProjects,
     loadConfig,
     refreshStatuses,
+    refreshGitStatuses,
     scanDirectory,
     addProject,
     removeProject,
     updateProject,
+    reorderProjects,
+    moveProject,
+    saveProjectOrder,
     selectProject,
     selectProcess,
     selectTarget,

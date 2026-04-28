@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { ProjectConfig, AppConfig, PortInfo, AppUpdateInfo } from "../types/project";
+import type { ProjectConfig, AppConfig, PortInfo, AppUpdateInfo, GitStatusInfo } from "../types/project";
 
 // ─── Project Commands ───────────────────────
 
@@ -23,12 +23,20 @@ export async function updateProject(project: ProjectConfig): Promise<ProjectConf
   return invoke("update_project", { project });
 }
 
+export async function reorderProjects(projectIds: string[]): Promise<ProjectConfig[]> {
+  return invoke("reorder_projects", { projectIds });
+}
+
 export async function saveProjectsConfig(): Promise<void> {
   return invoke("save_projects_config");
 }
 
 export async function readPackageScripts(dir: string): Promise<[string, string][]> {
   return invoke("read_package_scripts", { dir });
+}
+
+export async function getGitStatuses(): Promise<GitStatusInfo[]> {
+  return invoke("get_git_statuses");
 }
 
 // ─── Process Commands ───────────────────────
@@ -96,6 +104,10 @@ export async function getConfig(): Promise<AppConfig> {
 
 export async function updateConfig(config: AppConfig): Promise<void> {
   return invoke("update_config", { config });
+}
+
+export async function openProjectInIde(projectPath: string, ideCommand: string): Promise<void> {
+  return invoke("open_project_in_ide", { projectPath, ideCommand });
 }
 
 // ─── App Update Commands ───────────────────

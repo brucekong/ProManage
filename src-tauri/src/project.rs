@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use serde_json::Value;
 use uuid::Uuid;
@@ -9,8 +9,15 @@ pub fn scan_directory(dir: &str) -> Vec<ProjectConfig> {
     let mut projects = Vec::new();
     let path = Path::new(dir);
 
-    if !path.exists() || !path.is_dir() {
+    if !path.exists() {
         tracing::warn!("Scan directory does not exist: {}", dir);
+        return projects;
+    }
+
+    if path.is_file() {
+        if let Some(project) = parse_workspace_file(path) {
+            projects.push(project);
+        }
         return projects;
     }
 
@@ -75,6 +82,192 @@ pub fn scan_directory(dir: &str) -> Vec<ProjectConfig> {
     projects
 }
 
+fn is_workspace_file(path: &Path) -> bool {
+    let filename = path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or_default()
+        .to_lowercase();
+    filename.ends_with(".code-workspace")
+        || filename.ends_with(".workspace")
+        || filename.ends_with(".agworkspace")
+}
+
+fn parse_workspace_file(path: &Path) -> Option<ProjectConfig> {
+    if !is_workspace_file(path) {
+        return None;
+    }
+
+    let filename = path.file_name().and_then(|name| name.to_str())?;
+    let name = filename
+        .strip_suffix(".code-workspace")
+        .or_else(|| filename.strip_suffix(".agworkspace"))
+        .or_else(|| filename.strip_suffix(".workspace"))
+        .unwrap_or(filename)
+        .to_string();
+
+    let scripts = read_workspace_scripts(path);
+    let command = if scripts.is_empty() {
+        String::new()
+    } else {
+        infer_default_command(&scripts)
+    };
+
+    Some(ProjectConfig {
+        id: Uuid::new_v4().to_string(),
+        name,
+        path: path.to_string_lossy().to_string(),
+        project_kind: "workspace".to_string(),
+        command,
+        scripts,
+        has_custom_command: false,
+        port: 0,
+        group: "default".to_string(),
+        note: String::new(),
+        auto_start: false,
+        show_build_scripts: false,
+        depends_on: vec![],
+        env_vars: vec![],
+    })
+}
+
+fn read_workspace_scripts(path: &Path) -> Vec<(String, String)> {
+    let Ok(content) = std::fs::read_to_string(path) else {
+        return vec![];
+    };
+    let Ok(json) = serde_json::from_str::<Value>(&content) else {
+        return vec![];
+    };
+
+    let root_dir = path.parent().unwrap_or_else(|| Path::new(""));
+    let mut scripts = Vec::new();
+    let Some(folders) = json.get("folders").and_then(|value| value.as_array()) else {
+        return scripts;
+    };
+
+    for folder in folders {
+        let Some(raw_folder_path) = folder.get("path").and_then(|value| value.as_str()) else {
+            continue;
+        };
+        let folder_path = resolve_workspace_folder_path(root_dir, raw_folder_path);
+        let folder_label = folder
+            .get("name")
+            .and_then(|value| value.as_str())
+            .map(str::to_string)
+            .or_else(|| {
+                folder_path
+                    .file_name()
+                    .and_then(|name| name.to_str())
+                    .map(str::to_string)
+            })
+            .unwrap_or_else(|| raw_folder_path.to_string());
+
+        scripts.extend(read_workspace_folder_scripts(&folder_path, &folder_label));
+    }
+
+    scripts.sort_by(|a, b| a.0.cmp(&b.0));
+    scripts
+}
+
+fn resolve_workspace_folder_path(root_dir: &Path, raw_path: &str) -> PathBuf {
+    let folder_path = Path::new(raw_path);
+    if folder_path.is_absolute() {
+        folder_path.to_path_buf()
+    } else {
+        root_dir.join(folder_path)
+    }
+}
+
+fn read_workspace_folder_scripts(folder_path: &Path, folder_label: &str) -> Vec<(String, String)> {
+    if let Some(split_project) = parse_split_package_project(folder_path) {
+        return split_project
+            .scripts
+            .into_iter()
+            .map(|(name, command)| {
+                (
+                    format!("{}:{}", folder_label, name),
+                    absolutize_workspace_command(folder_path, &command),
+                )
+            })
+            .collect();
+    }
+
+    let pkg_path = folder_path.join("package.json");
+    if !pkg_path.exists() {
+        return vec![];
+    }
+
+    let Ok(content) = std::fs::read_to_string(pkg_path) else {
+        return vec![];
+    };
+    let Ok(json) = serde_json::from_str::<Value>(&content) else {
+        return vec![];
+    };
+
+    extract_scripts(&json)
+        .into_iter()
+        .filter(|(name, _)| is_workspace_runnable_script(name))
+        .map(|(name, _)| {
+            (
+                format!("{}:{}", folder_label, name),
+                package_script_command_absolute(folder_path, &name),
+            )
+        })
+        .collect()
+}
+
+fn is_workspace_runnable_script(name: &str) -> bool {
+    name == "dev"
+        || name == "start"
+        || name == "serve"
+        || name.starts_with("dev:")
+        || name.starts_with("start:")
+        || name.starts_with("serve:")
+        || name.ends_with(":dev")
+        || name.ends_with(":start")
+        || name.ends_with(":serve")
+}
+
+fn package_script_command_absolute(folder_path: &Path, script_name: &str) -> String {
+    let dir = shell_escape(&folder_path.to_string_lossy());
+    if script_name == "start" {
+        format!("cd {} && npm start", dir)
+    } else {
+        format!("cd {} && npm run {}", dir, shell_escape(script_name))
+    }
+}
+
+fn absolutize_workspace_command(root_dir: &Path, command: &str) -> String {
+    let trimmed = command.trim();
+    let Some(rest) = trimmed.strip_prefix("cd ") else {
+        return format!(
+            "cd {} && {}",
+            shell_escape(&root_dir.to_string_lossy()),
+            trimmed
+        );
+    };
+
+    let Some((dir, inner)) = rest.split_once("&&") else {
+        return format!(
+            "cd {} && {}",
+            shell_escape(&root_dir.to_string_lossy()),
+            trimmed
+        );
+    };
+
+    let clean_dir = dir
+        .trim()
+        .trim_matches('"')
+        .trim_matches('\'')
+        .replace("'\\''", "'");
+    let target_dir = root_dir.join(clean_dir);
+    format!(
+        "cd {} && {}",
+        shell_escape(&target_dir.to_string_lossy()),
+        inner.trim()
+    )
+}
+
 fn parse_split_package_project(root_dir: &Path) -> Option<ProjectConfig> {
     let child_packages = find_child_package_jsons(root_dir);
     if child_packages.len() < 2 {
@@ -113,8 +306,10 @@ fn parse_split_package_project(root_dir: &Path) -> Option<ProjectConfig> {
         id: Uuid::new_v4().to_string(),
         name,
         path: root_dir.to_string_lossy().to_string(),
+        project_kind: "folder".to_string(),
         command: infer_default_command(&scripts),
         scripts,
+        has_custom_command: false,
         port: 0,
         group: "default".to_string(),
         note: String::new(),
@@ -263,8 +458,10 @@ fn parse_package_json(path: &Path, project_dir: &str) -> Option<ProjectConfig> {
         id: Uuid::new_v4().to_string(),
         name: name.to_string(),
         path: project_dir.to_string(),
+        project_kind: "folder".to_string(),
         command: default_command,
         scripts,
+        has_custom_command: false,
         port: 0,
         group: "default".to_string(),
         note: String::new(),
@@ -276,6 +473,14 @@ fn parse_package_json(path: &Path, project_dir: &str) -> Option<ProjectConfig> {
 }
 
 pub fn read_package_scripts(project_dir: &str) -> Result<Vec<(String, String)>, String> {
+    let path = Path::new(project_dir);
+    if path.is_file() {
+        if is_workspace_file(path) {
+            return Ok(read_workspace_scripts(path));
+        }
+        return Ok(vec![]);
+    }
+
     let pkg_path = Path::new(project_dir).join("package.json");
     if !pkg_path.exists() {
         if let Some(project) = parse_split_package_project(Path::new(project_dir)) {
@@ -290,6 +495,16 @@ pub fn read_package_scripts(project_dir: &str) -> Result<Vec<(String, String)>, 
 }
 
 pub fn enrich_project_config(mut config: ProjectConfig) -> ProjectConfig {
+    if config.project_kind == "workspace" {
+        config.scripts = read_workspace_scripts(Path::new(&config.path));
+        config.command = if config.scripts.is_empty() {
+            String::new()
+        } else {
+            infer_default_command(&config.scripts)
+        };
+        return config;
+    }
+
     if let Ok(scripts) = read_package_scripts(&config.path) {
         config.scripts = scripts;
         if should_replace_command(&config.command, &config.scripts) {
@@ -640,7 +855,9 @@ pub fn config_to_project(config: &ProjectConfig) -> Project {
         id: config.id.clone(),
         name: config.name.clone(),
         path: config.path.clone(),
+        project_kind: config.project_kind.clone(),
         command: config.command.clone(),
+        has_custom_command: config.has_custom_command,
         port: config.port,
         group: config.group.clone(),
         note: config.note.clone(),

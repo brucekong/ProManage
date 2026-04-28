@@ -20,8 +20,10 @@ const emptyForm = () => ({
   id: "",
   name: "",
   path: "",
+  project_kind: "folder" as ProjectConfig["project_kind"],
   command: "npm run dev",
   scripts: [] as [string, string][],
+  has_custom_command: false,
   port: 0,
   group: "default",
   note: "",
@@ -117,6 +119,8 @@ const scriptOptions = computed(() =>
     }))
 );
 
+const isWorkspaceProject = computed(() => form.project_kind === "workspace");
+
 function inferCommandFromScripts(scripts: [string, string][]) {
   const names = scripts.map(([name]) => name);
   const priority = [
@@ -146,6 +150,11 @@ function inferCommandFromScripts(scripts: [string, string][]) {
 
 async function loadScriptsFromPackageJson() {
   pickerHint.value = "";
+  if (isWorkspaceProject.value) {
+    form.scripts = [];
+    form.command = "";
+    return;
+  }
   if (!form.path.trim()) return;
   if (!isTauriRuntime()) {
     pickerHint.value = nativeOnlyMessage;
@@ -184,6 +193,7 @@ async function pickFolder() {
       title: "Select project directory",
     });
     if (selected) {
+      form.project_kind = "folder";
       form.path = selected;
       if (!form.name) {
         const parts = selected.replace(/\/$/, "").split("/");
@@ -197,9 +207,56 @@ async function pickFolder() {
   }
 }
 
+async function pickWorkspaceFile() {
+  pickerHint.value = "";
+  if (!isTauriRuntime()) {
+    pickerHint.value = nativeOnlyMessage;
+    return;
+  }
+
+  try {
+    const { open } = await import("@tauri-apps/plugin-dialog");
+    const selected = await open({
+      directory: false,
+      multiple: false,
+      title: "Select workspace file",
+      filters: [
+        {
+          name: "Workspace",
+          extensions: ["code-workspace", "workspace", "agworkspace"],
+        },
+      ],
+    });
+    if (selected) {
+      form.project_kind = "workspace";
+      form.path = selected;
+      form.command = "";
+      form.scripts = [];
+      if (!form.name) {
+        const filename = selected.split("/").pop() || selected;
+        form.name = filename.replace(/\.(code-|ag)?workspace$/i, "");
+      }
+    }
+  } catch (e) {
+    console.error("Workspace picker failed:", e);
+    pickerHint.value = "Failed to open the native file picker.";
+  }
+}
+
+function inferKindFromPath(path: string): ProjectConfig["project_kind"] {
+  return /\.(code-|ag)?workspace$/i.test(path.trim()) ? "workspace" : "folder";
+}
+
 function submit() {
   if (!form.name.trim() || !form.path.trim()) return;
-  emit("saved", { ...form });
+  const projectKind = form.project_kind === "workspace" ? "workspace" : inferKindFromPath(form.path);
+  emit("saved", {
+    ...form,
+    project_kind: projectKind,
+    command: projectKind === "workspace" ? "" : form.command,
+    scripts: projectKind === "workspace" ? [] : form.scripts,
+    has_custom_command: projectKind !== "workspace" && (form.scripts?.length ?? 0) === 0 && form.command.trim().length > 0,
+  });
 }
 
 function close() {
@@ -231,15 +288,16 @@ function close() {
         <div class="field-row">
           <NInput
             v-model:value="form.path"
-            placeholder="/path/to/project"
+            placeholder="/path/to/project or workspace file"
             class="flex-1"
           />
           <NButton @click="pickFolder">Browse</NButton>
+          <NButton @click="pickWorkspaceFile">Workspace</NButton>
         </div>
         <p v-if="pickerHint" class="native-hint">{{ pickerHint }}</p>
       </div>
 
-      <div class="field">
+      <div v-if="!isWorkspaceProject" class="field">
         <label>Start Command</label>
         <div class="field-row">
           <NSelect

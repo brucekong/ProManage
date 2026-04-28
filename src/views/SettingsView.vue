@@ -1,11 +1,19 @@
 <script setup lang="ts">
 import { useProjectStore } from "../stores/project";
-import { reactive } from "vue";
+import { reactive, watch } from "vue";
 import { NSelect } from "naive-ui";
 
 const store = useProjectStore();
 
 const form = reactive({ ...store.config });
+
+watch(
+  () => store.config,
+  (nextConfig) => {
+    Object.assign(form, nextConfig);
+  },
+  { immediate: true, deep: true }
+);
 
 async function save() {
   await store.updateAppConfig({ ...form });
@@ -83,6 +91,28 @@ async function saveAndCheckUpdates() {
           class="setting-input"
           min="1"
           max="90"
+        />
+      </div>
+    </section>
+
+    <section class="setting-group">
+      <h3>IDE Integration</h3>
+      <div class="setting-row setting-row-stack">
+        <label>VS Code command or alias</label>
+        <input
+          v-model="form.ide_vscode_command"
+          type="text"
+          class="setting-input setting-input-wide"
+          placeholder="code"
+        />
+      </div>
+      <div class="setting-row setting-row-stack">
+        <label>Antigravity command or alias</label>
+        <input
+          v-model="form.ide_antigravity_command"
+          type="text"
+          class="setting-input setting-input-wide"
+          placeholder="ag"
         />
       </div>
     </section>

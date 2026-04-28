@@ -44,6 +44,8 @@ const outputEl = ref<HTMLDivElement | null>(null);
 const autoScroll = ref(true);
 
 const outputs = computed(() => store.processOutputs[props.project.id] || []);
+const isWorkspaceProject = computed(() => props.project.project_kind === "workspace");
+const hasRunTargets = computed(() => store.runTargetsForProject(props.project).length > 0);
 
 function toggleOutput() {
   showOutput.value = !showOutput.value;
@@ -100,7 +102,9 @@ watch(outputs, () => {
       </div>
       <div class="detail-row">
         <span class="label">Command</span>
-        <span class="value">{{ project.command }}</span>
+        <span class="value">
+          {{ isWorkspaceProject && !hasRunTargets ? "Antigravity workspace" : project.command }}
+        </span>
       </div>
       <div class="detail-row">
         <span class="label">Port</span>
@@ -128,6 +132,7 @@ watch(outputs, () => {
     <!-- Actions -->
     <div class="card-actions">
       <button
+        v-if="hasRunTargets"
         class="btn btn-start"
         :disabled="store.processStatuses[project.id] === 'Running'"
         @click="store.startProject(project.id)"
@@ -135,6 +140,7 @@ watch(outputs, () => {
         ▶ Start
       </button>
       <button
+        v-if="hasRunTargets"
         class="btn btn-stop"
         :disabled="store.processStatuses[project.id] !== 'Running'"
         @click="store.stopProject(project.id)"
@@ -142,6 +148,7 @@ watch(outputs, () => {
         ■ Stop
       </button>
       <button
+        v-if="hasRunTargets"
         class="btn btn-restart"
         @click="store.restartProject(project.id)"
       >

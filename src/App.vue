@@ -20,6 +20,7 @@ onMounted(async () => {
   await store.loadConfig();
   await store.loadProjects();
   await store.refreshStatuses();
+  void store.refreshGitStatuses();
   if (store.config.auto_check_updates) {
     await store.checkForAppUpdate({ silent: true });
   }

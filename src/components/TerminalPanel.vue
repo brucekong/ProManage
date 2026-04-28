@@ -3,6 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { FitAddon } from "@xterm/addon-fit";
 import { Terminal } from "@xterm/xterm";
 import "@xterm/xterm/css/xterm.css";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { useProjectStore, type ProjectRunTarget } from "../stores/project";
 import type { ProcessOutputLine } from "../stores/project";
 import { detectPortsFromOutput } from "../utils/ports";
@@ -18,6 +19,113 @@ let fitAddon: FitAddon | null = null;
 let renderedOutputCount = 0;
 let pendingWrites: string[] = [];
 let writeRafScheduled = false;
+const LINK_RE = /\b(?:https?:\/\/|www\.|localhost(?::\d+)?(?:\/[^\s]*)?|127\.0\.0\.1(?::\d+)?(?:\/[^\s]*)?)(?:[^\s<>"']*)/gi;
+
+type TerminalLink = {
+  text: string;
+  range: {
+    start: { x: number; y: number };
+    end: { x: number; y: number };
+  };
+  activate: () => void;
+  decorations: { underline: boolean; pointerCursor: boolean };
+};
+
+function normalizeDetectedUrl(raw: string) {
+  const trimmed = raw.replace(/[),.;!?]+$/g, "");
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (/^www\./i.test(trimmed)) return `https://${trimmed}`;
+  if (/^(localhost|127\.0\.0\.1)/i.test(trimmed)) return `http://${trimmed}`;
+  return trimmed;
+}
+
+function collectWrappedLine(instance: Terminal, rowIndex: number) {
+  const buffer = instance.buffer.active;
+  let startRow = rowIndex;
+  let startLine = buffer.getLine(startRow);
+
+  while (startRow > 0 && startLine?.isWrapped) {
+    startRow -= 1;
+    startLine = buffer.getLine(startRow);
+  }
+
+  const segments: Array<{ row: number; text: string; start: number; end: number }> = [];
+  let cursor = 0;
+  let currentRow = startRow;
+
+  while (currentRow < buffer.length) {
+    const line = buffer.getLine(currentRow);
+    if (!line) break;
+
+    const text = line.translateToString(false);
+    const end = cursor + text.length;
+    segments.push({ row: currentRow, text, start: cursor, end });
+    cursor = end;
+
+    const nextLine = buffer.getLine(currentRow + 1);
+    if (!nextLine?.isWrapped) break;
+    currentRow += 1;
+  }
+
+  return {
+    text: segments.map((segment) => segment.text).join(""),
+    segments,
+  };
+}
+
+function indexToBufferPosition(
+  segments: Array<{ row: number; text: string; start: number; end: number }>,
+  index: number
+) {
+  const segment =
+    segments.find((item) => index >= item.start && index <= item.end) ||
+    segments[segments.length - 1];
+  const col = Math.max(0, Math.min(index - segment.start, segment.text.length));
+
+  return {
+    x: col + 1,
+    y: segment.row + 1,
+  };
+}
+
+function installTerminalLinkProvider(instance: Terminal) {
+  instance.registerLinkProvider({
+    provideLinks(y, callback) {
+      const wrapped = collectWrappedLine(instance, y - 1);
+      if (!wrapped.text || wrapped.segments.length === 0) {
+        callback(undefined);
+        return;
+      }
+
+      const links: TerminalLink[] = [];
+
+      for (const match of wrapped.text.matchAll(LINK_RE)) {
+        const matchText = match[0];
+        const startIndex = match.index ?? -1;
+        if (startIndex < 0) continue;
+
+        const url = normalizeDetectedUrl(matchText);
+        const endIndexExclusive = startIndex + matchText.length;
+        const start = indexToBufferPosition(wrapped.segments, startIndex);
+        const end = indexToBufferPosition(wrapped.segments, endIndexExclusive);
+
+        links.push({
+          text: url,
+          range: { start, end },
+          activate: () => {
+            void openUrl(url);
+          },
+          decorations: {
+            underline: true,
+            pointerCursor: true,
+          },
+        });
+      }
+
+      callback(links.length > 0 ? links : undefined);
+    },
+  });
+}
 
 function flushTerminalWrites() {
   writeRafScheduled = false;
@@ -40,6 +148,8 @@ const processOutputListener = ((event: Event) => {
 }) as EventListener;
 
 const selectedProject = computed(() => store.selectedProject);
+const isWorkspaceProject = computed(() => selectedProject.value?.project_kind === "workspace");
+const hasRunTargets = computed(() => store.selectedProjectTargets.length > 0);
 const showUpdateBanner = computed(() =>
   ["checking", "available", "installing", "installed", "error"].includes(store.appUpdateStatus)
 );
@@ -205,6 +315,7 @@ function initTerminal() {
   fitAddon = new FitAddon();
   terminal.loadAddon(fitAddon);
   terminal.open(xtermEl.value);
+  installTerminalLinkProvider(terminal);
   fitAddon.fit();
   terminal.onData((data) => {
     void sendTerminalData(data);
@@ -325,13 +436,17 @@ onBeforeUnmount(() => {
         <span>Path</span>
         <strong :title="selectedProject.path">{{ selectedProject.path }}</strong>
       </div>
-      <div>
+      <div v-if="!isWorkspaceProject || hasRunTargets">
         <span>Command</span>
-        <strong>{{ selectedProject.command }}</strong>
+        <strong>{{ selectedTarget?.command || selectedProject.command }}</strong>
       </div>
-      <div>
+      <div v-if="!isWorkspaceProject || hasRunTargets">
         <span>Port</span>
         <strong>{{ detectedPorts.length ? detectedPorts.map(port => `:${port}`).join(", ") : "Detecting" }}</strong>
+      </div>
+      <div v-if="isWorkspaceProject">
+        <span>Type</span>
+        <strong>Antigravity workspace</strong>
       </div>
     </div>
 
