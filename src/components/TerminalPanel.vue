@@ -281,25 +281,25 @@ function initTerminal() {
     lineHeight: 1.45,
     scrollback: 20000,
     theme: {
-      background: "#070b12",
-      foreground: "#bfd1df",
-      cursor: "#69baf5",
-      selectionBackground: "#17344a",
-      black: "#0b1119",
-      red: "#ff6d82",
-      green: "#7ce2bc",
-      yellow: "#8fc8ff",
-      blue: "#69baf5",
-      magenta: "#9fb7ff",
-      cyan: "#86d9e9",
-      white: "#eef7ff",
-      brightBlack: "#708796",
-      brightRed: "#ff8a9c",
-      brightGreen: "#9ff0c5",
-      brightYellow: "#d8f0ff",
-      brightBlue: "#b7ddff",
-      brightMagenta: "#c5d2ff",
-      brightCyan: "#c5f6ff",
+      background: "#060b13",
+      foreground: "#c8d5df",
+      cursor: "#8fa7bd",
+      selectionBackground: "#183041",
+      black: "#09111a",
+      red: "#ff4568",
+      green: "#7fb5a2",
+      yellow: "#ffb02e",
+      blue: "#8fa7bd",
+      magenta: "#6f7d99",
+      cyan: "#a4c4d7",
+      white: "#edf4fb",
+      brightBlack: "#7f909e",
+      brightRed: "#ff7a91",
+      brightGreen: "#a7cdbd",
+      brightYellow: "#ffd166",
+      brightBlue: "#b6c8d6",
+      brightMagenta: "#e2c18a",
+      brightCyan: "#d4e5ee",
       brightWhite: "#f6fbff",
     },
   });
@@ -485,18 +485,19 @@ onBeforeUnmount(() => {
 <style scoped>
 .terminal-panel {
   min-width: 260px;
-  width: clamp(260px, 34vw, 420px);
+  width: clamp(260px, 34vw, 360px);
   height: 100%;
   display: flex;
   flex-direction: column;
-  border-left: 1px solid rgba(190, 224, 255, 0.1);
+  border-left: 1px solid rgba(112, 133, 151, 0.16);
   background:
-    radial-gradient(ellipse 88% 44% at 50% 0%, rgba(82, 169, 235, 0.13), transparent 72%),
-    linear-gradient(180deg, rgba(19, 16, 19, 0.76), rgba(9, 9, 11, 0.94));
+    radial-gradient(ellipse 88% 44% at 50% 0%, rgba(112, 133, 151, 0.18), transparent 72%),
+    linear-gradient(180deg, rgba(12, 23, 34, 0.72), rgba(4, 9, 14, 0.84));
   box-shadow:
     inset 1px 0 0 rgba(255, 255, 255, 0.04),
     -24px 0 70px rgba(0, 0, 0, 0.24);
-  backdrop-filter: blur(24px) saturate(120%);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
 }
 
 .terminal-topbar {
@@ -505,7 +506,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 12px;
   padding: 0 18px;
-  border-bottom: 1px solid rgba(190, 224, 255, 0.09);
+  border-bottom: 1px solid rgba(112, 133, 151, 0.09);
 }
 
 .terminal-title {
@@ -531,7 +532,7 @@ onBeforeUnmount(() => {
 }
 
 .terminal-status {
-  border: 1px solid rgba(190, 224, 255, 0.16);
+  border: 1px solid rgba(112, 133, 151, 0.16);
   border-radius: 999px;
   padding: 4px 9px;
   color: var(--color-muted);
@@ -546,9 +547,9 @@ onBeforeUnmount(() => {
 }
 
 .terminal-status.starting {
-  border-color: rgba(105, 186, 245, 0.34);
+  border-color: rgba(112, 133, 151, 0.34);
   color: var(--color-primary);
-  box-shadow: 0 0 22px rgba(82, 169, 235, 0.12);
+  box-shadow: 0 0 22px rgba(112, 133, 151, 0.12);
 }
 
 .terminal-status.error {
@@ -561,7 +562,7 @@ onBeforeUnmount(() => {
   grid-template-columns: 1fr;
   gap: 9px;
   padding: 16px 18px;
-  border-bottom: 1px solid rgba(190, 224, 255, 0.08);
+  border-bottom: 1px solid rgba(112, 133, 151, 0.08);
 }
 
 .terminal-meta div {
@@ -592,7 +593,7 @@ onBeforeUnmount(() => {
   display: flex;
   gap: 0;
   padding: 0 18px;
-  border-bottom: 1px solid rgba(190, 224, 255, 0.08);
+  border-bottom: 1px solid rgba(112, 133, 151, 0.08);
 }
 
 .terminal-tab {
@@ -624,19 +625,19 @@ onBeforeUnmount(() => {
 }
 
 .terminal-tab:hover::before {
-  background: rgba(190, 224, 255, 0.05);
+  background: rgba(112, 133, 151, 0.05);
 }
 
 .terminal-tab.web {
-  color: #d8f0ff;
+  color: #eef0eb;
 }
 
 .terminal-tab.api {
-  color: #c3f5f8;
+  color: #e5e8e1;
 }
 
 .terminal-tab.build {
-  color: #cdbbff;
+  color: #e2c18a;
 }
 
 .terminal-tab.active {
@@ -645,8 +646,8 @@ onBeforeUnmount(() => {
 }
 
 .terminal-tab.active::before {
-  background: rgba(105, 186, 245, 0.1);
-  box-shadow: inset 0 0 0 1px rgba(105, 186, 245, 0.18);
+  background: rgba(112, 133, 151, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(112, 133, 151, 0.18);
 }
 
 .terminal-tab.running strong {
@@ -673,7 +674,7 @@ onBeforeUnmount(() => {
 .terminal-btn {
   min-width: 0;
   height: 34px;
-  border: 1px solid rgba(190, 224, 255, 0.11);
+  border: 1px solid rgba(112, 133, 151, 0.11);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.045);
   color: var(--color-text-secondary);
@@ -683,9 +684,9 @@ onBeforeUnmount(() => {
 }
 
 .terminal-btn:hover:not(:disabled) {
-  border-color: rgba(105, 186, 245, 0.34);
+  border-color: rgba(112, 133, 151, 0.34);
   color: var(--color-text);
-  background: rgba(105, 186, 245, 0.08);
+  background: rgba(112, 133, 151, 0.08);
 }
 
 .terminal-btn:disabled {
@@ -712,7 +713,7 @@ onBeforeUnmount(() => {
   overflow: auto;
   padding: 18px;
   background:
-    radial-gradient(ellipse 90% 34% at 50% 0%, rgba(105, 186, 245, 0.08), transparent 70%),
+    radial-gradient(ellipse 90% 34% at 50% 0%, rgba(112, 133, 151, 0.08), transparent 70%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent);
   font-family: var(--font-mono);
   font-size: 12px;
@@ -739,7 +740,7 @@ onBeforeUnmount(() => {
 
 .terminal-input-wrap {
   padding: 12px 18px 18px;
-  border-top: 1px solid rgba(190, 224, 255, 0.08);
+  border-top: 1px solid rgba(112, 133, 151, 0.08);
 }
 
 .terminal-input-row {
@@ -748,7 +749,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 8px;
   min-height: 42px;
-  border: 1px solid rgba(190, 224, 255, 0.12);
+  border: 1px solid rgba(112, 133, 151, 0.12);
   border-radius: 14px;
   background: rgba(9, 8, 10, 0.62);
   padding: 0 8px 0 12px;
@@ -756,8 +757,8 @@ onBeforeUnmount(() => {
 }
 
 .terminal-input-row:focus-within {
-  border-color: rgba(105, 186, 245, 0.4);
-  box-shadow: 0 0 0 3px rgba(105, 186, 245, 0.08);
+  border-color: rgba(112, 133, 151, 0.4);
+  box-shadow: 0 0 0 3px rgba(112, 133, 151, 0.08);
 }
 
 .terminal-input-row.disabled {
@@ -787,10 +788,10 @@ onBeforeUnmount(() => {
 .terminal-send {
   height: 28px;
   min-width: 58px;
-  border: 1px solid rgba(105, 186, 245, 0.28);
+  border: 1px solid rgba(112, 133, 151, 0.28);
   border-radius: 10px;
-  background: rgba(105, 186, 245, 0.12);
-  color: #d8f0ff;
+  background: rgba(112, 133, 151, 0.12);
+  color: #eef0eb;
   font-size: 12px;
   font-weight: 800;
   cursor: pointer;
@@ -812,11 +813,11 @@ onBeforeUnmount(() => {
   grid-template-columns: 76px minmax(0, 1fr);
   gap: 10px;
   padding: 2px 0;
-  color: #d3c5bd;
+  color: #d8c6aa;
 }
 
 .terminal-line.boot {
-  color: #d8f0ff;
+  color: #eef0eb;
 }
 
 .terminal-line.stderr {
@@ -861,10 +862,10 @@ onBeforeUnmount(() => {
 .scan-ring {
   width: 54px;
   height: 54px;
-  border: 1px solid rgba(105, 186, 245, 0.26);
+  border: 1px solid rgba(112, 133, 151, 0.26);
   border-top-color: var(--color-primary);
   border-radius: 50%;
-  box-shadow: 0 0 38px rgba(82, 169, 235, 0.18);
+  box-shadow: 0 0 38px rgba(112, 133, 151, 0.18);
   animation: spin 1.8s linear infinite;
 }
 

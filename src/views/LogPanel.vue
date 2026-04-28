@@ -150,7 +150,7 @@ onMounted(async () => {
 }
 
 .log-entry.log-info { color: var(--color-text-secondary); }
-.log-entry.log-warn { color: var(--color-orange); background: rgba(105, 186, 245, 0.08); }
+.log-entry.log-warn { color: var(--color-orange); background: rgba(112, 133, 151, 0.08); }
 .log-entry.log-error { color: var(--color-red); background: rgba(255, 69, 58, 0.08); }
 
 .log-time {

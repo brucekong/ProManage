@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
-import { NButton, NConfigProvider, NModal, darkTheme } from "naive-ui";
+import { NButton, NConfigProvider, NModal, NSpace, darkTheme } from "naive-ui";
 import { useProjectStore } from "./stores/project";
 import ProjectList from "./views/ProjectList.vue";
 import LogPanel from "./views/LogPanel.vue";
@@ -13,6 +13,71 @@ const store = useProjectStore();
 const { t } = useI18n();
 const appVersion = packageJson.version;
 const updateModalVisible = ref(false);
+const themeOverrides = {
+  common: {
+    primaryColor: "#8fa7bd",
+    primaryColorHover: "#a4c4d7",
+    primaryColorPressed: "#6f8598",
+    primaryColorSuppl: "#b6c8d6",
+    successColor: "#7fb5a2",
+    warningColor: "#ffb02e",
+    errorColor: "#ff4568",
+    infoColor: "#a4c4d7",
+    textColorBase: "#edf4fb",
+    bodyColor: "#09111a",
+    modalColor: "rgba(16, 26, 36, 0.74)",
+    cardColor: "rgba(16, 26, 36, 0.74)",
+    popoverColor: "rgba(16, 26, 36, 0.84)",
+    borderColor: "rgba(112, 133, 151, 0.18)",
+  },
+  Button: {
+    borderRadiusMedium: "8px",
+    textColorPrimary: "#edf4fb",
+    textColorHover: "#a4c4d7",
+    color: "rgba(255, 255, 255, 0.06)",
+    colorHover: "rgba(112, 133, 151, 0.12)",
+    colorPressed: "rgba(112, 133, 151, 0.18)",
+    colorPrimary: "linear-gradient(135deg, #8fa7bd, #a4c4d7)",
+    colorHoverPrimary: "linear-gradient(135deg, #a5b7c7, #c8d7e2)",
+    colorPressedPrimary: "linear-gradient(135deg, #62788c, #879bac)",
+    borderHover: "1px solid #a4c4d7",
+    borderFocus: "1px solid #a4c4d7",
+  },
+  Input: {
+    color: "rgba(255, 255, 255, 0.08)",
+    colorFocus: "rgba(112, 133, 151, 0.12)",
+    border: "1px solid rgba(112, 133, 151, 0.16)",
+    borderHover: "1px solid #8fa7bd",
+    borderFocus: "1px solid #8fa7bd",
+    boxShadowFocus: "0 0 0 2px rgba(112, 133, 151, 0.18)",
+    placeholderColor: "rgba(200, 213, 223, 0.46)",
+  },
+  InputNumber: {
+    peers: {
+      Input: {
+        color: "rgba(255, 255, 255, 0.08)",
+        colorFocus: "rgba(112, 133, 151, 0.12)",
+      },
+    },
+  },
+  Select: {
+    peers: {
+      InternalSelection: {
+        color: "rgba(255, 255, 255, 0.08)",
+        colorActive: "rgba(112, 133, 151, 0.12)",
+        border: "1px solid rgba(112, 133, 151, 0.16)",
+        borderHover: "1px solid #8fa7bd",
+        borderActive: "1px solid #8fa7bd",
+        boxShadowActive: "0 0 0 2px rgba(112, 133, 151, 0.18)",
+      },
+      InternalSelectMenu: {
+        color: "rgba(16, 26, 36, 0.92)",
+        optionColorPending: "rgba(112, 133, 151, 0.14)",
+        optionColorActive: "rgba(112, 133, 151, 0.2)",
+      },
+    },
+  },
+};
 
 const tabs = [
   { id: "projects" as const, labelKey: "nav.projects", icon: "P" },
@@ -29,13 +94,6 @@ onMounted(async () => {
   if (store.config.auto_check_updates) {
     await store.checkForAppUpdate({ silent: true });
   }
-});
-
-const updateModalTitle = computed(() => {
-  if (store.appUpdateStatus === "available" && store.availableAppUpdate) {
-    return `ProStation ${store.availableAppUpdate.version}`;
-  }
-  return t("update.updater");
 });
 
 const showUpdateActions = computed(() =>
@@ -74,7 +132,7 @@ async function relaunchApp() {
 </script>
 
 <template>
-  <NConfigProvider :theme="darkTheme">
+  <NConfigProvider :theme="darkTheme" :theme-overrides="themeOverrides">
   <div class="app-layout">
     <aside class="sidebar">
       <div class="sidebar-header">
@@ -130,6 +188,7 @@ async function relaunchApp() {
     <NModal
       v-model:show="updateModalVisible"
       preset="card"
+      class="glass-modal"
       :title="t('update.kicker')"
       style="width: 420px; max-width: 90vw;"
       :bordered="false"
@@ -139,12 +198,11 @@ async function relaunchApp() {
       <div class="update-dialog" :class="store.appUpdateStatus">
         <span class="update-dialog-mark"></span>
         <div class="update-dialog-copy">
-          <strong>{{ updateModalTitle }}</strong>
           <span>{{ store.appUpdateMessage || t("update.checking") }}</span>
         </div>
       </div>
       <template #footer>
-        <div class="update-dialog-actions">
+        <NSpace justify="end">
           <NButton
             v-if="store.appUpdateStatus === 'available'"
             type="primary"
@@ -165,7 +223,7 @@ async function relaunchApp() {
           >
             {{ t("update.close") }}
           </NButton>
-        </div>
+        </NSpace>
       </template>
     </NModal>
   </div>
@@ -179,10 +237,10 @@ async function relaunchApp() {
   height: 100vh;
   overflow: hidden;
   background:
-    radial-gradient(ellipse 70% 42% at 50% 3%, rgba(64, 148, 216, 0.22), transparent 64%),
-    radial-gradient(ellipse 52% 36% at 72% 20%, rgba(36, 152, 161, 0.16), transparent 68%),
-    radial-gradient(ellipse 42% 34% at 22% 18%, rgba(83, 116, 192, 0.1), transparent 72%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0)),
+    radial-gradient(ellipse 72% 56% at 0% 0%, rgba(38, 77, 75, 0.32), transparent 66%),
+    radial-gradient(ellipse 62% 48% at 98% 0%, rgba(29, 51, 82, 0.34), transparent 70%),
+    radial-gradient(ellipse 72% 42% at 52% 10%, rgba(23, 40, 57, 0.3), transparent 76%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0) 38%),
     var(--color-bg);
 }
 
@@ -192,8 +250,8 @@ async function relaunchApp() {
   content: "";
   pointer-events: none;
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.035), transparent 16%, transparent 84%, rgba(255, 255, 255, 0.02)),
-    linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.34) 78%, rgba(0, 0, 0, 0.62) 100%);
+    linear-gradient(90deg, rgba(68, 95, 92, 0.1), transparent 24%, transparent 78%, rgba(62, 82, 117, 0.14)),
+    linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.36) 74%, rgba(0, 0, 0, 0.7) 100%);
 }
 
 .sidebar {
@@ -201,18 +259,18 @@ async function relaunchApp() {
   z-index: 1;
   width: 224px;
   flex-shrink: 0;
-  background: rgba(12, 12, 15, 0.64);
-  border-right: 1px solid rgba(190, 224, 255, 0.1);
+  background: rgba(8, 14, 21, 0.72);
+  border-right: 1px solid rgba(112, 133, 151, 0.15);
   display: flex;
   flex-direction: column;
   padding: 0;
   box-shadow: 20px 0 70px rgba(0, 0, 0, 0.24);
-  backdrop-filter: blur(26px) saturate(120%);
+  backdrop-filter: blur(26px) saturate(150%);
 }
 
 .sidebar-header {
   padding: 22px 18px 18px;
-  border-bottom: 1px solid rgba(190, 224, 255, 0.09);
+  border-bottom: 1px solid rgba(112, 133, 151, 0.13);
 }
 
 .brand-mark {
@@ -221,15 +279,15 @@ async function relaunchApp() {
   display: grid;
   place-items: center;
   margin-bottom: 12px;
-  border: 1px solid rgba(190, 224, 255, 0.16);
+  border: 1px solid rgba(112, 133, 151, 0.22);
   border-radius: 12px;
   background:
-    linear-gradient(145deg, rgba(190, 224, 255, 0.12), rgba(61, 159, 230, 0.16));
+    linear-gradient(145deg, rgba(164, 196, 215, 0.18), rgba(112, 133, 151, 0.24));
   color: var(--color-text);
   font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 800;
-  box-shadow: 0 0 36px rgba(82, 169, 235, 0.18);
+  box-shadow: 0 0 36px rgba(112, 133, 151, 0.26);
 }
 
 .app-title {
@@ -271,16 +329,16 @@ async function relaunchApp() {
 }
 
 .nav-item:hover {
-  border-color: rgba(190, 224, 255, 0.14);
-  background: rgba(190, 224, 255, 0.06);
+  border-color: rgba(112, 133, 151, 0.22);
+  background: rgba(112, 133, 151, 0.1);
   color: var(--color-text);
 }
 
 .nav-item.active {
-  border-color: rgba(105, 186, 245, 0.28);
-  background: linear-gradient(90deg, rgba(105, 186, 245, 0.14), rgba(134, 217, 233, 0.06));
+  border-color: rgba(112, 133, 151, 0.46);
+  background: linear-gradient(90deg, rgba(112, 133, 151, 0.24), rgba(164, 196, 215, 0.1));
   color: var(--color-text);
-  box-shadow: inset 3px 0 0 var(--color-primary), 0 0 34px rgba(82, 169, 235, 0.12);
+  box-shadow: inset 3px 0 0 var(--color-primary), 0 0 34px rgba(112, 133, 151, 0.2);
 }
 
 .nav-icon {
@@ -288,7 +346,7 @@ async function relaunchApp() {
   height: 24px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(190, 224, 255, 0.12);
+  border: 1px solid rgba(112, 133, 151, 0.18);
   border-radius: 8px;
   color: var(--color-primary);
   font-family: var(--font-mono);
@@ -312,7 +370,7 @@ async function relaunchApp() {
   flex-direction: column;
   gap: 8px;
   padding: 14px 16px;
-  border-top: 1px solid rgba(190, 224, 255, 0.09);
+  border-top: 1px solid rgba(112, 133, 151, 0.13);
 }
 
 .system-pulse {
@@ -363,20 +421,20 @@ async function relaunchApp() {
   margin-top: 4px;
   border-radius: 999px;
   background: var(--color-primary);
-  box-shadow: 0 0 18px rgba(105, 186, 245, 0.5);
+  box-shadow: 0 0 18px rgba(112, 133, 151, 0.55);
 }
 
 .update-dialog.available .update-dialog-mark,
 .update-dialog.installed .update-dialog-mark,
 .update-dialog.up-to-date .update-dialog-mark {
   background: var(--color-green);
-  box-shadow: 0 0 18px rgba(124, 226, 188, 0.45);
+  box-shadow: 0 0 18px rgba(39, 242, 154, 0.48);
 }
 
 .update-dialog.error .update-dialog-mark,
 .update-dialog.disabled .update-dialog-mark {
   background: var(--color-red);
-  box-shadow: 0 0 18px rgba(255, 109, 130, 0.35);
+  box-shadow: 0 0 18px rgba(255, 69, 104, 0.42);
 }
 
 .update-dialog.checking .update-dialog-mark,
@@ -388,24 +446,12 @@ async function relaunchApp() {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 7px;
-}
-
-.update-dialog-copy strong {
-  color: var(--color-text);
-  font-size: 16px;
 }
 
 .update-dialog-copy span {
   color: var(--color-text-secondary);
   font-size: 13px;
   line-height: 1.5;
-}
-
-.update-dialog-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
 }
 
 @keyframes updatePulse {
@@ -434,7 +480,7 @@ async function relaunchApp() {
   min-width: 0;
   flex: 1;
   padding: 18px;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 @media (max-width: 980px) {

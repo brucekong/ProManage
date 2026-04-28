@@ -7,22 +7,28 @@
 }
 
 :root {
-  --color-bg: #070b12;
-  --color-surface: rgba(14, 22, 32, 0.66);
-  --color-text: #eef7ff;
-  --color-text-secondary: #bfd1df;
-  --color-muted: #708796;
-  --color-border: rgba(190, 224, 255, 0.13);
-  --color-hover: rgba(120, 194, 255, 0.08);
-  --color-primary: #69baf5;
-  --color-cyan: #86d9e9;
-  --color-green: #7ce2bc;
-  --color-red: #ff6d82;
-  --color-orange: #8fc8ff;
-  --color-purple: #9fb7ff;
-  --glow-warm: rgba(82, 169, 235, 0.24);
-  --glow-rose: rgba(54, 130, 188, 0.18);
-  --glow-violet: rgba(78, 105, 177, 0.18);
+  --color-bg: #060b13;
+  --color-surface: rgba(13, 23, 34, 0.72);
+  --color-text: #edf4fb;
+  --color-text-secondary: #c8d5df;
+  --color-muted: #7f909e;
+  --color-border: rgba(112, 133, 151, 0.18);
+  --color-hover: rgba(112, 133, 151, 0.13);
+  --color-primary: #8fa7bd;
+  --color-cyan: #a4c4d7;
+  --color-green: #7fb5a2;
+  --color-red: #ff4568;
+  --color-orange: #ffb02e;
+  --color-purple: #6f7d99;
+  --glow-warm: rgba(112, 133, 151, 0.34);
+  --glow-rose: rgba(255, 69, 104, 0.2);
+  --glow-violet: rgba(75, 95, 116, 0.18);
+  --glass-panel: rgba(11, 20, 29, 0.64);
+  --glass-panel-strong: rgba(16, 26, 36, 0.74);
+  --glass-field: rgba(255, 255, 255, 0.08);
+  --glass-highlight: rgba(255, 255, 255, 0.16);
+  --glass-border: rgba(112, 133, 151, 0.22);
+  --glass-shadow: 0 28px 90px rgba(0, 0, 0, 0.38);
   --font-mono: "SF Mono", "JetBrains Mono", "Fira Code", "Menlo", monospace;
 
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
@@ -57,12 +63,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(190, 224, 255, 0.18);
+  background: rgba(112, 133, 151, 0.2);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(190, 224, 255, 0.32);
+  background: rgba(112, 133, 151, 0.34);
 }
 
 /* Focus styles */
@@ -75,4 +81,74 @@ body {
 ::selection {
   background: var(--color-primary);
   color: #06101a;
+}
+
+.n-modal-mask {
+  background: rgba(2, 8, 18, 0.58);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+}
+
+.glass-modal.n-card {
+  overflow: hidden;
+  /* border: 1px solid var(--glass-border); */
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.035) 38%, rgba(112, 133, 151, 0.07)),
+    var(--glass-panel-strong);
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -1px 0 rgba(112, 133, 151, 0.1);
+  backdrop-filter: blur(34px) saturate(170%);
+  -webkit-backdrop-filter: blur(34px) saturate(170%);
+}
+
+.glass-modal.n-card::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  content: "";
+  background: linear-gradient(90deg, transparent, rgba(210, 230, 241, 0.85), transparent);
+  pointer-events: none;
+}
+
+.glass-modal .n-card-header {
+  /* border-bottom: 1px solid rgba(112, 133, 151, 0.14); */
+}
+
+.glass-modal .n-card-header__main {
+  color: var(--color-text);
+  font-weight: 760;
+}
+
+.glass-modal .n-card-header__close {
+  color: var(--color-text-secondary);
+}
+
+.glass-modal .n-card-header__close:hover {
+  color: var(--color-cyan);
+}
+
+.glass-modal .n-card__footer {
+  /* border-top: 1px solid rgba(112, 133, 151, 0.12); */
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.025));
+}
+
+.glass-modal .n-input,
+.glass-modal .n-input-number,
+.glass-modal .n-base-selection,
+.glass-modal .n-base-selection-label {
+  background-color: var(--glass-field);
+  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
+}
+
+.glass-modal .n-input,
+.glass-modal .n-base-selection {
+  border-color: rgba(112, 133, 151, 0.16);
+}
+
+.glass-modal .n-input:hover,
+.glass-modal .n-base-selection:hover {
+  border-color: rgba(164, 196, 215, 0.34);
 }

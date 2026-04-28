@@ -248,8 +248,9 @@ function close() {
   <NModal
     :show="show"
     preset="card"
+    class="glass-modal project-form-glass"
     :title="isEditing ? t('form.editTitle') : t('form.addTitle')"
-    style="width: 520px; max-width: 90vw;"
+    style="width: 720px; max-width: 92vw;"
     :bordered="false"
     :closable="true"
     @update:show="(val: boolean) => { if (!val) close(); }"
@@ -364,9 +365,10 @@ function close() {
 .modal-body {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
   max-height: 70vh;
   overflow-y: auto;
+  padding-right: 2px;
 }
 
 .field {
@@ -377,15 +379,15 @@ function close() {
 
 .field label {
   font-size: 12px;
-  font-weight: 600;
-  color: var(--color-muted);
+  font-weight: 800;
+  color: #c5c9c1;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.05em;
 }
 
 .field-row {
   display: flex;
-  gap: 8px;
+  gap: 12px;
   align-items: flex-end;
 }
 
@@ -411,11 +413,18 @@ function close() {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.035);
-  padding: 10px 12px;
+  border: 1px solid rgba(112, 133, 151, 0.24);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(112, 133, 151, 0.055)),
+    rgba(255, 255, 255, 0.045);
+  padding: 16px 18px;
   cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 18px 48px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
 }
 
 .option-row span {

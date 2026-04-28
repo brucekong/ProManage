@@ -179,7 +179,7 @@ async function saveAndCheckUpdates() {
 
 <style scoped>
 .settings-view {
-  max-width: 600px;
+  /* max-width: 600px; */
 }
 
 h2 {

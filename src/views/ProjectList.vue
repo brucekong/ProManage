@@ -601,6 +601,7 @@ async function onDrop(e: DragEvent) {
     <NModal
       :show="Boolean(pendingDeleteProject)"
       preset="card"
+      class="glass-modal"
       :title="t('delete.title')"
       style="width: 420px; max-width: 90vw;"
       :bordered="false"
@@ -638,14 +639,15 @@ async function onDrop(e: DragEvent) {
 .status-grid,
 .project-table,
 .empty-state {
-  border: 1px solid rgba(190, 224, 255, 0.11);
+  border: 1px solid var(--glass-border);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.062), rgba(255, 255, 255, 0.026)),
-    rgba(18, 16, 18, 0.58);
+    linear-gradient(145deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.035) 46%, rgba(112, 133, 151, 0.055)),
+    var(--glass-panel);
   box-shadow:
-    0 24px 80px rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(28px) saturate(120%);
+    var(--glass-shadow),
+    inset 0 1px 0 var(--glass-highlight);
+  backdrop-filter: blur(32px) saturate(165%);
+  -webkit-backdrop-filter: blur(32px) saturate(165%);
 }
 
 .command-strip {
@@ -705,9 +707,9 @@ async function onDrop(e: DragEvent) {
   min-width: 0;
   flex: 1;
   height: 42px;
-  border: 1px solid rgba(190, 224, 255, 0.12);
+  border: 1px solid rgba(112, 133, 151, 0.18);
   border-radius: 14px;
-  background: rgba(10, 9, 11, 0.52);
+  background: rgba(255, 255, 255, 0.07);
   color: var(--color-text);
   padding: 0 14px;
   outline: none;
@@ -715,18 +717,18 @@ async function onDrop(e: DragEvent) {
 }
 
 .search-input:focus {
-  border-color: rgba(105, 186, 245, 0.46);
+  border-color: rgba(164, 196, 215, 0.48);
   box-shadow:
-    0 0 0 3px rgba(105, 186, 245, 0.09),
-    0 0 40px rgba(82, 169, 235, 0.1);
+    0 0 0 3px rgba(112, 133, 151, 0.16),
+    0 0 40px rgba(112, 133, 151, 0.18);
 }
 
 .btn {
   height: 42px;
   min-width: 72px;
-  border: 1px solid rgba(190, 224, 255, 0.12);
+  border: 1px solid rgba(112, 133, 151, 0.18);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.052);
+  background: rgba(255, 255, 255, 0.07);
   color: var(--color-text-secondary);
   font-size: 12px;
   font-weight: 800;
@@ -735,9 +737,9 @@ async function onDrop(e: DragEvent) {
 }
 
 .btn:hover:not(:disabled) {
-  border-color: rgba(105, 186, 245, 0.36);
+  border-color: rgba(164, 196, 215, 0.42);
   color: var(--color-text);
-  background: rgba(105, 186, 245, 0.09);
+  background: rgba(112, 133, 151, 0.13);
 }
 
 .btn:disabled {
@@ -746,11 +748,13 @@ async function onDrop(e: DragEvent) {
 }
 
 .btn.primary {
-  border-color: rgba(105, 186, 245, 0.36);
-  color: #d8f0ff;
+  border-color: rgba(164, 196, 215, 0.46);
+  color: #f4f5f0;
   background:
-    linear-gradient(135deg, rgba(105, 186, 245, 0.28), rgba(43, 151, 168, 0.18));
-  box-shadow: 0 14px 34px rgba(82, 169, 235, 0.16);
+    linear-gradient(135deg, rgba(112, 133, 151, 0.48), rgba(164, 196, 215, 0.28));
+  box-shadow:
+    0 14px 34px rgba(112, 133, 151, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
 }
 
 .btn.success {
@@ -810,7 +814,7 @@ async function onDrop(e: DragEvent) {
   flex-direction: column;
   gap: 12px;
   padding: 16px;
-  border: 1px solid rgba(190, 224, 255, 0.09);
+  border: 1px solid rgba(112, 133, 151, 0.09);
   border-radius: 15px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.052), rgba(255, 255, 255, 0.022)),
@@ -827,16 +831,16 @@ async function onDrop(e: DragEvent) {
 
 .project-row:hover,
 .project-row.selected {
-  border-color: rgba(105, 186, 245, 0.3);
+  border-color: rgba(112, 133, 151, 0.3);
   background:
-    linear-gradient(180deg, rgba(105, 186, 245, 0.08), rgba(255, 255, 255, 0.026)),
+    linear-gradient(180deg, rgba(112, 133, 151, 0.08), rgba(255, 255, 255, 0.026)),
     rgba(17, 14, 16, 0.5);
 }
 
 .project-row.selected {
   box-shadow:
-    inset 0 0 0 1px rgba(190, 224, 255, 0.06),
-    0 18px 48px rgba(82, 169, 235, 0.12);
+    inset 0 0 0 1px rgba(112, 133, 151, 0.06),
+    0 18px 48px rgba(112, 133, 151, 0.12);
 }
 
 .project-row.dragging {
@@ -960,7 +964,7 @@ async function onDrop(e: DragEvent) {
   height: 22px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(190, 224, 255, 0.1);
+  border: 1px solid rgba(112, 133, 151, 0.1);
   border-radius: 7px;
   background: rgba(255, 255, 255, 0.03);
   color: var(--color-muted);
@@ -970,9 +974,9 @@ async function onDrop(e: DragEvent) {
 }
 
 .title-action:hover {
-  border-color: rgba(105, 186, 245, 0.34);
+  border-color: rgba(112, 133, 151, 0.34);
   color: var(--color-primary);
-  background: rgba(105, 186, 245, 0.08);
+  background: rgba(112, 133, 151, 0.08);
 }
 
 .title-action.danger:hover {
@@ -995,7 +999,7 @@ async function onDrop(e: DragEvent) {
   max-width: 84px;
   overflow: hidden;
   padding: 3px 7px;
-  border: 1px solid rgba(190, 224, 255, 0.12);
+  border: 1px solid rgba(112, 133, 151, 0.12);
   border-radius: 999px;
   color: var(--color-muted);
   font-size: 9px;
@@ -1012,9 +1016,9 @@ async function onDrop(e: DragEvent) {
 }
 
 .project-status-chip.starting {
-  border-color: rgba(105, 186, 245, 0.28);
+  border-color: rgba(112, 133, 151, 0.28);
   color: var(--color-primary);
-  background: rgba(105, 186, 245, 0.07);
+  background: rgba(112, 133, 151, 0.07);
 }
 
 .project-status-chip.error {
@@ -1046,9 +1050,9 @@ async function onDrop(e: DragEvent) {
   display: inline-grid;
   place-items: center;
   padding: 2px 6px;
-  border: 1px solid rgba(134, 217, 233, 0.24);
+  border: 1px solid rgba(164, 196, 215, 0.24);
   border-radius: 6px;
-  color: #9ddfeb;
+  color: #d2d7ce;
   font-family: var(--font-sans);
   font-size: 9px;
   font-weight: 800;
@@ -1096,7 +1100,7 @@ async function onDrop(e: DragEvent) {
 }
 
 .service-section-title {
-  color: #88a2b3;
+  color: #8ca99a;
   font-size: 9px;
   font-weight: 900;
   letter-spacing: 0.12em;
@@ -1111,7 +1115,7 @@ async function onDrop(e: DragEvent) {
   align-items: center;
   min-height: 38px;
   padding: 6px 7px;
-  border: 1px solid rgba(190, 224, 255, 0.1);
+  border: 1px solid rgba(112, 133, 151, 0.1);
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.028);
   cursor: pointer;
@@ -1119,7 +1123,7 @@ async function onDrop(e: DragEvent) {
 
 .service-row:hover,
 .service-row:focus-visible {
-  border-color: rgba(190, 224, 255, 0.2);
+  border-color: rgba(112, 133, 151, 0.2);
   background: rgba(255, 255, 255, 0.045);
   outline: none;
 }
@@ -1128,15 +1132,15 @@ async function onDrop(e: DragEvent) {
   width: 3px;
   height: 22px;
   border-radius: 999px;
-  background: rgba(105, 186, 245, 0.55);
+  background: rgba(112, 133, 151, 0.55);
 }
 
 .backend .service-accent {
-  background: rgba(158, 220, 227, 0.56);
+  background: rgba(139, 216, 183, 0.56);
 }
 
 .task .service-accent {
-  background: rgba(190, 224, 255, 0.3);
+  background: rgba(112, 133, 151, 0.3);
 }
 
 .service-summary {
@@ -1162,14 +1166,14 @@ async function onDrop(e: DragEvent) {
 }
 
 .service-summary span {
-  color: #8fa3b2;
+  color: #8ca99a;
   font-family: var(--font-mono);
   font-size: 10px;
 }
 
 .service-port {
   max-width: 54px;
-  color: #9bdcc7;
+  color: #d1d7cd;
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 800;
@@ -1189,7 +1193,7 @@ async function onDrop(e: DragEvent) {
 
 .service-state-dot.starting {
   background: var(--color-primary);
-  box-shadow: 0 0 12px rgba(105, 186, 245, 0.42);
+  box-shadow: 0 0 12px rgba(112, 133, 151, 0.42);
 }
 
 .service-state-dot.error {
@@ -1202,7 +1206,7 @@ async function onDrop(e: DragEvent) {
   height: 28px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(190, 224, 255, 0.12);
+  border: 1px solid rgba(112, 133, 151, 0.12);
   border-radius: 9px;
   background: rgba(255, 255, 255, 0.035);
   color: var(--color-text-secondary);
@@ -1228,7 +1232,7 @@ async function onDrop(e: DragEvent) {
   min-width: 0;
   margin-top: auto;
   padding-top: 10px;
-  border-top: 1px solid rgba(190, 224, 255, 0.07);
+  border-top: 1px solid rgba(112, 133, 151, 0.07);
 }
 
 .icon-action {
@@ -1237,7 +1241,7 @@ async function onDrop(e: DragEvent) {
   height: 32px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(190, 224, 255, 0.1);
+  border: 1px solid rgba(112, 133, 151, 0.1);
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.038);
   color: var(--color-text-secondary);
@@ -1255,7 +1259,7 @@ async function onDrop(e: DragEvent) {
   width: max-content;
   max-width: 260px;
   padding: 7px 9px;
-  border: 1px solid rgba(190, 224, 255, 0.14);
+  border: 1px solid rgba(112, 133, 151, 0.14);
   border-radius: 10px;
   background: rgba(16, 13, 15, 0.96);
   color: var(--color-text);
@@ -1276,9 +1280,9 @@ async function onDrop(e: DragEvent) {
 }
 
 .icon-action:hover:not(:disabled) {
-  border-color: rgba(105, 186, 245, 0.35);
+  border-color: rgba(112, 133, 151, 0.35);
   color: var(--color-primary);
-  background: rgba(105, 186, 245, 0.08);
+  background: rgba(112, 133, 151, 0.08);
 }
 
 .icon-action:disabled {
@@ -1296,17 +1300,17 @@ async function onDrop(e: DragEvent) {
   z-index: 10;
   display: grid;
   place-items: center;
-  border: 2px dashed rgba(105, 186, 245, 0.46);
+  border: 2px dashed rgba(112, 133, 151, 0.46);
   border-radius: 24px;
   background: rgba(12, 10, 12, 0.78);
   pointer-events: none;
 }
 
 .drop-hint {
-  border: 1px solid rgba(190, 224, 255, 0.16);
+  border: 1px solid rgba(112, 133, 151, 0.16);
   border-radius: 16px;
   background: rgba(20, 16, 18, 0.94);
-  color: #d8f0ff;
+  color: #eef0eb;
   padding: 14px 22px;
   font-weight: 800;
 }
@@ -1326,7 +1330,7 @@ async function onDrop(e: DragEvent) {
 }
 
 .delete-confirm strong {
-  color: #d8f0ff;
+  color: #eef0eb;
 }
 
 .delete-confirm span {
@@ -1358,10 +1362,10 @@ async function onDrop(e: DragEvent) {
 .empty-orbit {
   width: 72px;
   height: 72px;
-  border: 1px solid rgba(105, 186, 245, 0.28);
+  border: 1px solid rgba(112, 133, 151, 0.28);
   border-top-color: var(--color-primary);
   border-radius: 50%;
-  box-shadow: 0 0 46px rgba(82, 169, 235, 0.18);
+  box-shadow: 0 0 46px rgba(112, 133, 151, 0.18);
 }
 
 .empty-inline {
