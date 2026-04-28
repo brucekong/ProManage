@@ -1,18 +1,23 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
-import { NConfigProvider, darkTheme } from "naive-ui";
+import { computed, onMounted, ref, watch } from "vue";
+import { NButton, NConfigProvider, NModal, darkTheme } from "naive-ui";
 import { useProjectStore } from "./stores/project";
 import ProjectList from "./views/ProjectList.vue";
 import LogPanel from "./views/LogPanel.vue";
 import SettingsView from "./views/SettingsView.vue";
 import TerminalPanel from "./components/TerminalPanel.vue";
+import { useI18n } from "./i18n";
+import packageJson from "../package.json";
 
 const store = useProjectStore();
+const { t } = useI18n();
+const appVersion = packageJson.version;
+const updateModalVisible = ref(false);
 
 const tabs = [
-  { id: "projects" as const, label: "Projects", icon: "P" },
-  { id: "logs" as const, label: "Logs", icon: "L" },
-  { id: "settings" as const, label: "Settings", icon: "S" },
+  { id: "projects" as const, labelKey: "nav.projects", icon: "P" },
+  { id: "logs" as const, labelKey: "nav.logs", icon: "L" },
+  { id: "settings" as const, labelKey: "nav.settings", icon: "S" },
 ];
 
 onMounted(async () => {
@@ -25,6 +30,47 @@ onMounted(async () => {
     await store.checkForAppUpdate({ silent: true });
   }
 });
+
+const updateModalTitle = computed(() => {
+  if (store.appUpdateStatus === "available" && store.availableAppUpdate) {
+    return `ProStation ${store.availableAppUpdate.version}`;
+  }
+  return t("update.updater");
+});
+
+const showUpdateActions = computed(() =>
+  ["disabled", "checking", "available", "installing", "installed", "up-to-date", "error"].includes(store.appUpdateStatus)
+);
+
+watch(
+  () => store.appUpdateStatus,
+  (status) => {
+    if (showUpdateActions.value && status !== "idle" && store.appUpdateMessage) {
+      updateModalVisible.value = true;
+    }
+  }
+);
+
+async function checkUpdatesFromVersion() {
+  updateModalVisible.value = true;
+  await store.checkForAppUpdate({
+    messages: {
+      disabled: t("update.disabled"),
+      checking: t("update.checking"),
+      ready: (version) => t("update.ready", { version }),
+      latest: t("update.latest"),
+    },
+  });
+}
+
+async function installUpdate() {
+  updateModalVisible.value = true;
+  await store.installAvailableAppUpdate();
+}
+
+async function relaunchApp() {
+  await store.relaunchApp();
+}
 </script>
 
 <template>
@@ -32,9 +78,8 @@ onMounted(async () => {
   <div class="app-layout">
     <aside class="sidebar">
       <div class="sidebar-header">
-        <div class="brand-mark">PS</div>
         <h1 class="app-title">ProStation</h1>
-        <p class="app-subtitle">Development Command Center</p>
+        <p class="app-subtitle">{{ t("app.subtitle") }}</p>
       </div>
 
       <nav class="sidebar-nav">
@@ -46,7 +91,7 @@ onMounted(async () => {
           @click="store.activeTab = tab.id"
         >
           <span class="nav-icon">{{ tab.icon }}</span>
-          <span class="nav-label">{{ tab.label }}</span>
+          <span class="nav-label">{{ t(tab.labelKey) }}</span>
           <span
             v-if="tab.id === 'projects' && store.runningCount > 0"
             class="nav-badge"
@@ -59,9 +104,17 @@ onMounted(async () => {
       <div class="sidebar-footer">
         <div class="system-pulse">
           <span class="pulse-dot"></span>
-          <span>{{ store.runningCount }} online</span>
+          <span>{{ t("status.online", { count: store.runningCount }) }}</span>
         </div>
-        <div class="version">v0.1.0</div>
+        <button
+          class="version"
+          type="button"
+          :title="t('update.check')"
+          :aria-label="t('update.check')"
+          @click="checkUpdatesFromVersion"
+        >
+          v{{ appVersion }}
+        </button>
       </div>
     </aside>
 
@@ -73,6 +126,48 @@ onMounted(async () => {
       </section>
       <TerminalPanel />
     </main>
+
+    <NModal
+      v-model:show="updateModalVisible"
+      preset="card"
+      :title="t('update.kicker')"
+      style="width: 420px; max-width: 90vw;"
+      :bordered="false"
+      :closable="store.appUpdateStatus !== 'checking' && store.appUpdateStatus !== 'installing'"
+      :mask-closable="store.appUpdateStatus !== 'checking' && store.appUpdateStatus !== 'installing'"
+    >
+      <div class="update-dialog" :class="store.appUpdateStatus">
+        <span class="update-dialog-mark"></span>
+        <div class="update-dialog-copy">
+          <strong>{{ updateModalTitle }}</strong>
+          <span>{{ store.appUpdateMessage || t("update.checking") }}</span>
+        </div>
+      </div>
+      <template #footer>
+        <div class="update-dialog-actions">
+          <NButton
+            v-if="store.appUpdateStatus === 'available'"
+            type="primary"
+            @click="installUpdate"
+          >
+            {{ t("update.install") }}
+          </NButton>
+          <NButton
+            v-if="store.appUpdateStatus === 'installed'"
+            type="primary"
+            @click="relaunchApp"
+          >
+            {{ t("common.restart") }}
+          </NButton>
+          <NButton
+            v-if="store.appUpdateStatus !== 'checking' && store.appUpdateStatus !== 'installing'"
+            @click="updateModalVisible = false"
+          >
+            {{ t("update.close") }}
+          </NButton>
+        </div>
+      </template>
+    </NModal>
   </div>
   </NConfigProvider>
 </template>
@@ -237,8 +332,93 @@ onMounted(async () => {
 }
 
 .version {
+  width: fit-content;
+  padding: 0;
+  border: 0;
+  background: transparent;
   font-size: 11px;
   color: var(--color-muted);
+  cursor: pointer;
+  text-align: left;
+}
+
+.version:hover,
+.version:focus-visible {
+  color: var(--color-primary);
+  text-decoration: underline;
+  outline: none;
+}
+
+.update-dialog {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 4px 0 2px;
+}
+
+.update-dialog-mark {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  margin-top: 4px;
+  border-radius: 999px;
+  background: var(--color-primary);
+  box-shadow: 0 0 18px rgba(105, 186, 245, 0.5);
+}
+
+.update-dialog.available .update-dialog-mark,
+.update-dialog.installed .update-dialog-mark,
+.update-dialog.up-to-date .update-dialog-mark {
+  background: var(--color-green);
+  box-shadow: 0 0 18px rgba(124, 226, 188, 0.45);
+}
+
+.update-dialog.error .update-dialog-mark,
+.update-dialog.disabled .update-dialog-mark {
+  background: var(--color-red);
+  box-shadow: 0 0 18px rgba(255, 109, 130, 0.35);
+}
+
+.update-dialog.checking .update-dialog-mark,
+.update-dialog.installing .update-dialog-mark {
+  animation: updatePulse 1s ease-in-out infinite;
+}
+
+.update-dialog-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.update-dialog-copy strong {
+  color: var(--color-text);
+  font-size: 16px;
+}
+
+.update-dialog-copy span {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.update-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+@keyframes updatePulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.86);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
 }
 
 .main-content {

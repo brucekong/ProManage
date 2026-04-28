@@ -29,6 +29,8 @@ pub struct Project {
     pub start_time: Option<String>,
     pub auto_start: bool,
     #[serde(default)]
+    pub is_favorite: bool,
+    #[serde(default)]
     pub show_build_scripts: bool,
 }
 
@@ -49,6 +51,8 @@ pub struct ProjectConfig {
     pub note: String,
     pub auto_start: bool,
     #[serde(default)]
+    pub is_favorite: bool,
+    #[serde(default)]
     pub show_build_scripts: bool,
     pub depends_on: Vec<String>,
     pub env_vars: Vec<(String, String)>,
@@ -62,6 +66,7 @@ pub struct AppConfig {
     pub port_range_end: u16,
     pub log_retention_days: u32,
     pub theme: String, // "system" | "light" | "dark"
+    pub language: String, // "en" | "zh"
     pub minimize_to_tray: bool,
     pub auto_restore: bool,
     pub auto_check_updates: bool,
@@ -79,6 +84,7 @@ impl Default for AppConfig {
             port_range_end: 4000,
             log_retention_days: 7,
             theme: "system".to_string(),
+            language: "en".to_string(),
             minimize_to_tray: true,
             auto_restore: false,
             auto_check_updates: true,

@@ -1,11 +1,24 @@
 <script setup lang="ts">
 import { useProjectStore } from "../stores/project";
-import { reactive, watch } from "vue";
+import { computed, reactive, watch } from "vue";
 import { NSelect } from "naive-ui";
+import { useI18n } from "../i18n";
 
 const store = useProjectStore();
+const { t } = useI18n();
 
 const form = reactive({ ...store.config });
+
+const themeOptions = computed(() => [
+  { label: t("settings.system"), value: "system" },
+  { label: t("settings.light"), value: "light" },
+  { label: t("settings.dark"), value: "dark" },
+]);
+
+const languageOptions = computed(() => [
+  { label: t("settings.english"), value: "en" },
+  { label: t("settings.chinese"), value: "zh" },
+]);
 
 watch(
   () => store.config,
@@ -19,6 +32,12 @@ async function save() {
   await store.updateAppConfig({ ...form });
 }
 
+async function applyLanguage(value: string) {
+  const language = value === "zh" ? "zh" : "en";
+  form.language = language;
+  await store.updateAppConfig({ ...form, language });
+}
+
 async function saveAndCheckUpdates() {
   await save();
   await store.checkForAppUpdate();
@@ -27,12 +46,12 @@ async function saveAndCheckUpdates() {
 
 <template>
   <div class="settings-view">
-    <h2>Settings</h2>
+    <h2>{{ t("settings.title") }}</h2>
 
     <section class="setting-group">
-      <h3>Port Range</h3>
+      <h3>{{ t("settings.portRange") }}</h3>
       <div class="setting-row">
-        <label>Start Port</label>
+        <label>{{ t("settings.startPort") }}</label>
         <input
           v-model.number="form.port_range_start"
           type="number"
@@ -42,7 +61,7 @@ async function saveAndCheckUpdates() {
         />
       </div>
       <div class="setting-row">
-        <label>End Port</label>
+        <label>{{ t("settings.endPort") }}</label>
         <input
           v-model.number="form.port_range_end"
           type="number"
@@ -54,37 +73,42 @@ async function saveAndCheckUpdates() {
     </section>
 
     <section class="setting-group">
-      <h3>Behavior</h3>
+      <h3>{{ t("settings.behavior") }}</h3>
       <div class="setting-row">
-        <label>Minimize to tray on close</label>
+        <label>{{ t("settings.minimizeTray") }}</label>
         <input v-model="form.minimize_to_tray" type="checkbox" class="setting-checkbox" />
       </div>
       <div class="setting-row">
-        <label>Auto-restore projects on launch</label>
+        <label>{{ t("settings.autoRestore") }}</label>
         <input v-model="form.auto_restore" type="checkbox" class="setting-checkbox" />
       </div>
     </section>
 
     <section class="setting-group">
-      <h3>Appearance</h3>
+      <h3>{{ t("settings.appearance") }}</h3>
       <div class="setting-row">
-        <label>Theme</label>
+        <label>{{ t("settings.theme") }}</label>
         <NSelect
           v-model:value="form.theme"
-          :options="[
-            { label: 'System', value: 'system' },
-            { label: 'Light', value: 'light' },
-            { label: 'Dark', value: 'dark' },
-          ]"
+          :options="themeOptions"
           class="setting-select"
+        />
+      </div>
+      <div class="setting-row">
+        <label>{{ t("settings.language") }}</label>
+        <NSelect
+          v-model:value="form.language"
+          :options="languageOptions"
+          class="setting-select"
+          @update:value="applyLanguage"
         />
       </div>
     </section>
 
     <section class="setting-group">
-      <h3>Logging</h3>
+      <h3>{{ t("settings.logging") }}</h3>
       <div class="setting-row">
-        <label>Log retention (days)</label>
+        <label>{{ t("settings.retention") }}</label>
         <input
           v-model.number="form.log_retention_days"
           type="number"
@@ -96,9 +120,9 @@ async function saveAndCheckUpdates() {
     </section>
 
     <section class="setting-group">
-      <h3>IDE Integration</h3>
+      <h3>{{ t("settings.ide") }}</h3>
       <div class="setting-row setting-row-stack">
-        <label>VS Code command or alias</label>
+        <label>{{ t("settings.vscode") }}</label>
         <input
           v-model="form.ide_vscode_command"
           type="text"
@@ -107,7 +131,7 @@ async function saveAndCheckUpdates() {
         />
       </div>
       <div class="setting-row setting-row-stack">
-        <label>Antigravity command or alias</label>
+        <label>{{ t("settings.antigravity") }}</label>
         <input
           v-model="form.ide_antigravity_command"
           type="text"
@@ -118,13 +142,13 @@ async function saveAndCheckUpdates() {
     </section>
 
     <section class="setting-group">
-      <h3>Updates</h3>
+      <h3>{{ t("settings.updates") }}</h3>
       <div class="setting-row">
-        <label>Check for updates on launch</label>
+        <label>{{ t("settings.autoUpdates") }}</label>
         <input v-model="form.auto_check_updates" type="checkbox" class="setting-checkbox" />
       </div>
       <div class="setting-row setting-row-stack">
-        <label>Update feed URL</label>
+        <label>{{ t("settings.updateFeed") }}</label>
         <input
           v-model="form.update_endpoint"
           type="text"
@@ -133,23 +157,23 @@ async function saveAndCheckUpdates() {
         />
       </div>
       <div class="setting-row setting-row-stack">
-        <label>Updater public key</label>
+        <label>{{ t("settings.publicKey") }}</label>
         <textarea
           v-model="form.updater_pubkey"
           class="setting-textarea"
           rows="5"
-          placeholder="Paste the full updater public key contents here"
+          :placeholder="t('settings.publicKeyPlaceholder')"
         />
       </div>
       <div class="setting-actions">
         <button class="btn-secondary" @click="saveAndCheckUpdates">
-          Check for Updates
+          {{ t("settings.checkUpdates") }}
         </button>
-        <span class="update-hint">{{ store.appUpdateMessage || "The GitHub Releases feed is prefilled. Paste the matching updater public key to enable checks." }}</span>
+        <span class="update-hint">{{ store.appUpdateMessage || t("settings.updateHint") }}</span>
       </div>
     </section>
 
-    <button class="btn-save" @click="save">Save Settings</button>
+    <button class="btn-save" @click="save">{{ t("settings.save") }}</button>
   </div>
 </template>
 

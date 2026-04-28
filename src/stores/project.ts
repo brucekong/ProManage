@@ -3,6 +3,7 @@ import { ref, computed, shallowRef } from "vue";
 import { listen } from "@tauri-apps/api/event";
 import type { ProjectConfig, AppConfig, AppUpdateInfo, GitStatusInfo } from "../types/project";
 import { isRuntimeReady } from "../utils/ports";
+import { notifyUser } from "../utils/notifications";
 import * as api from "../api/commands";
 
 const MAX_OUTPUT_LINES = 20000;
@@ -40,6 +41,7 @@ export const useProjectStore = defineStore("project", () => {
     port_range_end: 4000,
     log_retention_days: 7,
     theme: "system",
+    language: "en",
     minimize_to_tray: true,
     auto_restore: false,
     auto_check_updates: true,
@@ -55,6 +57,8 @@ export const useProjectStore = defineStore("project", () => {
   const processStartLineOffsets = ref<Record<string, number>>({});
   const readinessThrottles = new Map<string, number>();
   const readinessTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  const notifiedRunning = new Set<string>();
+  const notifiedErrors = new Set<string>();
   const activeTab = ref<"projects" | "logs" | "settings">("projects");
   const selectedProjectId = ref<string | null>(null);
   const selectedProcessId = ref<string | null>(null);
@@ -176,6 +180,55 @@ export const useProjectStore = defineStore("project", () => {
 
     const rank: Record<ProjectRunTarget["kind"], number> = { web: 0, api: 1, task: 2, build: 3 };
     return deduped.sort((a, b) => rank[a.kind] - rank[b.kind] || a.name.localeCompare(b.name));
+  }
+
+  function processDisplayName(id: string) {
+    const [projectId, scriptName] = id.split("::");
+    const project = projects.value.find((item) => item.id === projectId);
+    if (!project) return selectedProcessLabel.value || id;
+    if (!scriptName) return project.name;
+    const target = runTargetsForProject(project).find((item) => item.id === id);
+    return target ? `${project.name} · ${target.label}` : project.name;
+  }
+
+  function notifyProjectStatus(id: string, status: string) {
+    const name = processDisplayName(id);
+    if (status === "Running" && !notifiedRunning.has(id)) {
+      notifiedRunning.add(id);
+      notifiedErrors.delete(id);
+      void notifyUser("项目启动成功", `${name} 已运行。`);
+    }
+    if (status === "Error" && !notifiedErrors.has(id)) {
+      notifiedErrors.add(id);
+      notifiedRunning.delete(id);
+      void notifyUser("项目启动失败", `${name} 启动失败。`);
+    }
+    if (status === "Stopped" || status === "Starting") {
+      notifiedRunning.delete(id);
+      if (status === "Starting") notifiedErrors.delete(id);
+    }
+  }
+
+  async function releaseConflictingPort(project: ProjectConfig) {
+    if (!project.port || project.port <= 0) return true;
+
+    const info = await api.checkPortUsage(project.port);
+    if (!info.in_use) return true;
+
+    const pidText = info.pid ? `PID ${info.pid}` : "已有进程";
+    const confirmed = window.confirm(
+      `端口 ${project.port} 已被占用。\n${pidText} 正在监听该端口。\n\n是否结束该进程并继续启动？`
+    );
+    if (!confirmed) return false;
+
+    try {
+      await api.killPortProcess(project.port);
+      return true;
+    } catch (error) {
+      console.error("Failed to release port:", error);
+      window.alert(`释放端口 ${project.port} 失败。`);
+      return false;
+    }
   }
 
   const selectedProjectTargets = computed(() =>
@@ -380,11 +433,15 @@ export const useProjectStore = defineStore("project", () => {
   }
 
   async function startProject(id: string) {
+    const project = projects.value.find((item) => item.id === id);
+    if (project && !(await releaseConflictingPort(project))) return;
+
     markStarting(id);
     try {
       await api.startProject(id);
     } catch (error) {
       processStatuses.value[id] = "Error";
+      notifyProjectStatus(id, "Error");
       throw error;
     }
     selectedProcessId.value = id;
@@ -397,11 +454,15 @@ export const useProjectStore = defineStore("project", () => {
     label: string,
     command: string
   ) {
+    const project = projects.value.find((item) => item.id === projectId);
+    if (project && !(await releaseConflictingPort(project))) return;
+
     markStarting(processId);
     try {
       await api.startProjectCommand(projectId, processId, label, command);
     } catch (error) {
       processStatuses.value[processId] = "Error";
+      notifyProjectStatus(processId, "Error");
       throw error;
     }
     selectedProjectId.value = projectId;
@@ -415,11 +476,15 @@ export const useProjectStore = defineStore("project", () => {
   }
 
   async function restartProject(id: string) {
+    const project = projects.value.find((item) => item.id === id);
+    if (project && !(await releaseConflictingPort(project))) return;
+
     markStarting(id);
     try {
       await api.restartProject(id);
     } catch (error) {
       processStatuses.value[id] = "Error";
+      notifyProjectStatus(id, "Error");
       throw error;
     }
   }
@@ -479,18 +544,25 @@ export const useProjectStore = defineStore("project", () => {
     }
   }
 
-  async function checkForAppUpdate(options: { silent?: boolean } = {}) {
-    const { silent = false } = options;
+  type AppUpdateMessages = Partial<{
+    disabled: string;
+    checking: string;
+    ready: (version: string) => string;
+    latest: string;
+  }>;
+
+  async function checkForAppUpdate(options: { silent?: boolean; messages?: AppUpdateMessages } = {}) {
+    const { silent = false, messages = {} } = options;
 
     if (!updaterConfigured.value) {
       appUpdateStatus.value = "disabled";
-      appUpdateMessage.value = "";
+      appUpdateMessage.value = silent ? "" : messages.disabled || "Update checks are not configured.";
       availableAppUpdate.value = null;
       return null;
     }
 
     appUpdateStatus.value = "checking";
-    appUpdateMessage.value = silent ? "" : "Checking for updates...";
+    appUpdateMessage.value = silent ? "" : messages.checking || "Checking for updates...";
 
     try {
       const update = await api.checkAppUpdate();
@@ -498,12 +570,13 @@ export const useProjectStore = defineStore("project", () => {
 
       if (update) {
         appUpdateStatus.value = "available";
-        appUpdateMessage.value = `Version ${update.version} is ready to install.`;
+        appUpdateMessage.value = messages.ready?.(update.version) || `Version ${update.version} is ready to install.`;
+        void notifyUser("发现新版本", `ProStation ${update.version} 已可安装。`);
         return update;
       }
 
       appUpdateStatus.value = silent ? "idle" : "up-to-date";
-      appUpdateMessage.value = silent ? "" : "You are already on the latest version.";
+      appUpdateMessage.value = silent ? "" : messages.latest || "You are already on the latest version.";
       return null;
     } catch (error) {
       console.error("Failed to check app update:", error);
@@ -569,6 +642,7 @@ export const useProjectStore = defineStore("project", () => {
 
     if (isRuntimeReady(currentRunOutput)) {
       processStatuses.value[pid] = "Running";
+      notifyProjectStatus(pid, "Running");
       readinessThrottles.delete(pid);
       const timer = readinessTimers.get(pid);
       if (timer) {
@@ -632,6 +706,7 @@ export const useProjectStore = defineStore("project", () => {
         }
       } else {
         processStatuses.value[event.payload.id] = event.payload.status;
+        notifyProjectStatus(event.payload.id, event.payload.status);
       }
     });
   }

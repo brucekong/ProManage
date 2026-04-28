@@ -6,8 +6,10 @@ import ProjectFormModal from "../components/ProjectFormModal.vue";
 import type { ProjectConfig } from "../types/project";
 import { detectPortsFromOutput } from "../utils/ports";
 import { openProjectInIde } from "../api/commands";
+import { useI18n } from "../i18n";
 
 const store = useProjectStore();
+const { t, status: statusText } = useI18n();
 const query = ref("");
 const dragOver = ref(false);
 const draggedProjectId = ref<string | null>(null);
@@ -19,13 +21,25 @@ const pendingDeleteProject = ref<ProjectConfig | null>(null);
 
 const filteredProjects = computed(() => {
   const keyword = query.value.trim().toLowerCase();
-  if (!keyword) return store.projects;
-  return store.projects.filter((project) =>
-    [project.name, project.path, project.command, project.group, project.note]
-      .filter(Boolean)
-      .some((value) => value.toLowerCase().includes(keyword))
+  const matched = keyword
+    ? store.projects.filter((project) =>
+      [project.name, project.path, project.command, project.group, project.note]
+        .filter(Boolean)
+        .some((value) => value.toLowerCase().includes(keyword))
+    )
+    : [...store.projects];
+
+  return matched.sort((a, b) =>
+    Number(Boolean(b.is_favorite)) - Number(Boolean(a.is_favorite))
   );
 });
+
+async function toggleFavorite(project: ProjectConfig) {
+  await store.updateProject({
+    ...project,
+    is_favorite: !project.is_favorite,
+  });
+}
 
 function compactBranchName(branch: string) {
   if (branch.length <= 28) return branch;
@@ -87,7 +101,7 @@ function targetStatus(targetId: string) {
 
 function targetPortLabel(targetId: string) {
   const ports = detectedPorts(targetId);
-  return ports.length ? ports.map((port) => `:${port}`).join(", ") : "auto";
+  return ports.length ? ports.map((port) => `:${port}`).join(", ") : t("project.auto");
 }
 
 function projectStatus(project: ProjectConfig) {
@@ -110,6 +124,10 @@ function targetGroup(target: ReturnType<typeof runTargets>[number]) {
 
 function groupTargets(project: ProjectConfig, group: "frontend" | "backend" | "task") {
   return runTargets(project).filter((target) => targetGroup(target) === group);
+}
+
+function groupLabel(group: "frontend" | "backend" | "task") {
+  return t(`project.${group}`);
 }
 
 function hasRunTargets(project: ProjectConfig) {
@@ -178,7 +196,7 @@ async function openProjectFolder(project: ProjectConfig) {
     await revealItemInDir(project.path);
   } catch (e) {
     console.error("Open project folder failed:", e);
-    alert("Unable to open the project folder in this runtime.");
+    alert(t("project.openFolderFailed"));
   }
 }
 
@@ -191,8 +209,9 @@ function ideCommand(kind: "vscode" | "antigravity") {
 
 async function openProjectInConfiguredIde(project: ProjectConfig, kind: "vscode" | "antigravity") {
   const command = ideCommand(kind);
+  const ideName = kind === "vscode" ? "VS Code" : "Antigravity";
   if (!command) {
-    alert(`${kind === "vscode" ? "VS Code" : "Antigravity"} command is not configured yet.`);
+    alert(t("project.ideNotConfigured", { ide: ideName }));
     return;
   }
 
@@ -200,7 +219,7 @@ async function openProjectInConfiguredIde(project: ProjectConfig, kind: "vscode"
     await openProjectInIde(project.path, command);
   } catch (e) {
     console.error(`Open project in ${kind} failed:`, e);
-    alert(`Unable to open ${project.name} in ${kind === "vscode" ? "VS Code" : "Antigravity"}.`);
+    alert(t("project.ideOpenFailed", { name: project.name, ide: ideName }));
   }
 }
 
@@ -382,44 +401,43 @@ async function onDrop(e: DragEvent) {
   <div class="project-list-view" @dragover="onDragOver" @dragleave="onDragLeave" @drop="onDrop">
     <header class="command-strip">
       <div class="title-block">
-        <span class="section-kicker">Workspace</span>
-        <h2>Project Matrix</h2>
+        <h2>{{ t("project.title") }}</h2>
       </div>
 
       <section class="ops-bar">
-        <input v-model="query" class="search-input" type="text" placeholder="Search projects" />
-        <button class="btn" @click="openAddModal">Add</button>
+        <input v-model="query" class="search-input" type="text" :placeholder="t('project.search')" />
+        <button class="btn" @click="openAddModal">{{ t("project.add") }}</button>
         <button
           class="btn danger"
           :disabled="store.runningCount === 0"
           @click="store.stopAll()"
         >
-          Stop All
+          {{ t("project.stopAll") }}
         </button>
       </section>
     </header>
 
     <section class="status-grid">
       <div class="metric">
-        <span>Running</span>
+        <span>{{ t("metric.running") }}</span>
         <strong>{{ store.runningCount }}</strong>
       </div>
       <div class="metric">
-        <span>Stopped</span>
+        <span>{{ t("metric.stopped") }}</span>
         <strong>{{ store.stoppedCount }}</strong>
       </div>
       <div class="metric">
-        <span>Error</span>
+        <span>{{ t("metric.error") }}</span>
         <strong>{{ store.errorCount }}</strong>
       </div>
       <div class="metric">
-        <span>Total</span>
+        <span>{{ t("metric.total") }}</span>
         <strong>{{ store.projects.length }}</strong>
       </div>
     </section>
 
     <div v-if="dragOver" class="drop-overlay">
-      <div class="drop-hint">Drop folders or workspace files to add projects</div>
+      <div class="drop-hint">{{ t("project.dropHint") }}</div>
     </div>
 
     <section v-if="store.projects.length > 0" class="project-table">
@@ -451,11 +469,19 @@ async function onDrop(e: DragEvent) {
           <span class="project-title-block">
             <span class="project-name">
               <span class="project-title-text">{{ project.name }}</span>
+              <button
+                class="title-action favorite project-pin-action"
+                :class="{ active: project.is_favorite }"
+                :data-tooltip="project.is_favorite ? t('project.unfavorite') : t('project.favorite')"
+                @click.stop="toggleFavorite(project)"
+              >
+                ★
+              </button>
               <span class="title-actions">
-                <button class="title-action" data-tooltip="Edit project" @click.stop="openEditModal(project)">
+                <button class="title-action" :data-tooltip="t('project.edit')" @click.stop="openEditModal(project)">
                   ✎
                 </button>
-                <button class="title-action danger" data-tooltip="Remove project" @click.stop="handleDelete(project)">
+                <button class="title-action danger" :data-tooltip="t('project.remove')" @click.stop="handleDelete(project)">
                   ×
                 </button>
               </span>
@@ -464,11 +490,10 @@ async function onDrop(e: DragEvent) {
               v-if="isWorkspaceProject(project) || gitBadges[project.id]"
               class="project-submeta"
             >
-              <span v-if="isWorkspaceProject(project)" class="workspace-chip">workspace</span>
+              <span v-if="isWorkspaceProject(project)" class="workspace-chip">{{ t("project.workspace") }}</span>
               <span
                 v-if="gitBadges[project.id]"
                 class="git-chip"
-                :class="{ dirty: gitBadges[project.id].dirty }"
                 :title="gitBadges[project.id].title"
               >
                 {{ gitBadges[project.id].label }}
@@ -480,7 +505,7 @@ async function onDrop(e: DragEvent) {
             class="project-status-chip"
             :class="projectStatus(project).toLowerCase()"
           >
-            {{ projectStatus(project) }}
+            {{ statusText(projectStatus(project)) }}
           </span>
         </span>
         <span class="project-meta">
@@ -491,7 +516,7 @@ async function onDrop(e: DragEvent) {
                 class="service-section"
                 :class="group"
               >
-                <span class="service-section-title">{{ group }}</span>
+                <span class="service-section-title">{{ groupLabel(group) }}</span>
                 <div
                   v-for="target in groupTargets(project, group)"
                   :key="target.id"
@@ -513,8 +538,8 @@ async function onDrop(e: DragEvent) {
                     class="inline-run"
                     :class="{ running: ['Starting', 'Running'].includes(statusLabel(target.id)) }"
                     :data-tooltip="['Starting', 'Running'].includes(statusLabel(target.id))
-                      ? `Stop ${target.label}`
-                      : `Start ${target.label}: ${target.command}`"
+                      ? t('project.stopTarget', { label: target.label })
+                      : t('project.startTarget', { label: target.label, command: target.command })"
                     @click.stop="['Starting', 'Running'].includes(statusLabel(target.id))
                       ? stopTarget(target.id)
                       : startTarget(project, target)"
@@ -529,7 +554,7 @@ async function onDrop(e: DragEvent) {
         <span class="row-actions">
           <button
             class="icon-action"
-            :data-tooltip="isWorkspaceProject(project) ? 'Reveal workspace file' : 'Open folder'"
+            :data-tooltip="isWorkspaceProject(project) ? t('project.revealWorkspace') : t('project.openFolder')"
             @click.stop="openProjectFolder(project)"
           >
             📁
@@ -537,7 +562,7 @@ async function onDrop(e: DragEvent) {
           <button
             v-if="ideCommand('vscode')"
             class="icon-action ide"
-            data-tooltip="Open in VS Code"
+            :data-tooltip="t('project.openVsCode')"
             @click.stop="openProjectInConfiguredIde(project, 'vscode')"
           >
             VS
@@ -545,7 +570,7 @@ async function onDrop(e: DragEvent) {
           <button
             v-if="ideCommand('antigravity')"
             class="icon-action ide"
-            data-tooltip="Open in Antigravity"
+            :data-tooltip="t('project.openAntigravity')"
             @click.stop="openProjectInConfiguredIde(project, 'antigravity')"
           >
             AG
@@ -554,15 +579,15 @@ async function onDrop(e: DragEvent) {
       </div>
 
       <div v-if="filteredProjects.length === 0" class="empty-inline">
-        No projects match the current search.
+        {{ t("project.noSearchMatch") }}
       </div>
     </section>
 
     <section v-else class="empty-state">
       <div class="empty-orbit"></div>
-      <h3>No Projects</h3>
-      <p>Scan a directory or add a project manually to start the workspace.</p>
-      <button class="btn primary" @click="openAddModal">Add Project</button>
+      <h3>{{ t("project.emptyTitle") }}</h3>
+      <p>{{ t("project.emptyDesc") }}</p>
+      <button class="btn primary" @click="openAddModal">{{ t("project.addProject") }}</button>
     </section>
 
     <ProjectFormModal
@@ -576,7 +601,7 @@ async function onDrop(e: DragEvent) {
     <NModal
       :show="Boolean(pendingDeleteProject)"
       preset="card"
-      title="Remove Project"
+      :title="t('delete.title')"
       style="width: 420px; max-width: 90vw;"
       :bordered="false"
       :closable="true"
@@ -584,16 +609,14 @@ async function onDrop(e: DragEvent) {
     >
       <div class="delete-confirm">
         <p>
-          Remove
-          <strong>{{ pendingDeleteProject?.name }}</strong>
-          from ProStation?
+          {{ t("delete.prompt", { name: pendingDeleteProject?.name || "" }) }}
         </p>
-        <span>This only removes the project entry. It does not delete local files.</span>
+        <span>{{ t("delete.desc") }}</span>
       </div>
       <template #footer>
         <div class="confirm-actions">
-          <NButton @click="cancelDelete">Cancel</NButton>
-          <NButton type="error" @click="confirmDelete">Remove</NButton>
+          <NButton @click="cancelDelete">{{ t("common.cancel") }}</NButton>
+          <NButton type="error" @click="confirmDelete">{{ t("common.remove") }}</NButton>
         </div>
       </template>
     </NModal>
@@ -783,17 +806,10 @@ async function onDrop(e: DragEvent) {
 .project-row {
   position: relative;
   width: 100%;
-  min-height: 176px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto auto;
-  grid-template-areas:
-    "main"
-    "meta";
+  display: flex;
+  flex-direction: column;
   gap: 12px;
-  align-items: start;
-  align-content: start;
-  padding: 16px 16px 54px;
+  padding: 16px;
   border: 1px solid rgba(190, 224, 255, 0.09);
   border-radius: 15px;
   background:
@@ -870,8 +886,8 @@ async function onDrop(e: DragEvent) {
 }
 
 .project-main {
-  grid-area: main;
   display: block;
+  flex: 0 0 auto;
 }
 
 .project-row.has-run-targets .project-main {
@@ -879,7 +895,7 @@ async function onDrop(e: DragEvent) {
 }
 
 .project-meta {
-  grid-area: meta;
+  flex: 1 0 auto;
   overflow: visible;
 }
 
@@ -924,6 +940,20 @@ async function onDrop(e: DragEvent) {
   transform: translateX(0);
 }
 
+.project-pin-action {
+  flex: 0 0 auto;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.14s ease, transform 0.14s ease;
+}
+
+.project-row:hover .project-pin-action,
+.project-row:focus-within .project-pin-action,
+.project-pin-action.active {
+  opacity: 1;
+  transform: translateX(0);
+}
+
 .title-action {
   position: relative;
   width: 22px;
@@ -949,6 +979,13 @@ async function onDrop(e: DragEvent) {
   border-color: rgba(255, 109, 130, 0.28);
   color: var(--color-red);
   background: rgba(255, 109, 130, 0.08);
+}
+
+.title-action.favorite.active,
+.title-action.favorite:hover {
+  border-color: rgba(244, 202, 105, 0.28);
+  color: #f0cf83;
+  background: rgba(244, 202, 105, 0.08);
 }
 
 .project-status-chip {
@@ -1025,21 +1062,15 @@ async function onDrop(e: DragEvent) {
   display: inline-block;
   overflow: hidden;
   padding: 3px 8px;
-  border: 1px solid rgba(190, 224, 255, 0.12);
+  border: 1px solid rgba(244, 202, 105, 0.24);
   border-radius: 999px;
-  color: #b7c7d3;
+  color: #f0cf83;
   font-family: var(--font-mono);
   font-size: 9px;
   font-weight: 800;
   line-height: 1.1;
   text-overflow: ellipsis;
   white-space: nowrap;
-  background: rgba(190, 224, 255, 0.04);
-}
-
-.git-chip.dirty {
-  border-color: rgba(244, 202, 105, 0.24);
-  color: #f0cf83;
   background: rgba(244, 202, 105, 0.06);
 }
 
@@ -1075,7 +1106,7 @@ async function onDrop(e: DragEvent) {
 .service-row {
   min-width: 0;
   display: grid;
-  grid-template-columns: 3px minmax(0, 1fr) auto 8px 28px;
+  grid-template-columns: 3px minmax(0, 1fr) minmax(34px, auto) 8px 28px;
   gap: 8px;
   align-items: center;
   min-height: 38px;
@@ -1187,17 +1218,17 @@ async function onDrop(e: DragEvent) {
 }
 
 .row-actions {
-  grid-area: auto;
-  position: absolute;
-  right: 16px;
-  bottom: 16px;
-  z-index: 2;
+  flex: 0 0 auto;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
   flex-wrap: wrap;
   min-width: 0;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid rgba(190, 224, 255, 0.07);
 }
 
 .icon-action {
@@ -1345,7 +1376,7 @@ async function onDrop(e: DragEvent) {
   }
 
   .project-row {
-    padding: 16px 16px 58px;
+    padding: 16px;
   }
 }
 
@@ -1370,7 +1401,7 @@ async function onDrop(e: DragEvent) {
   .project-row {
     min-height: 210px;
     gap: 10px;
-    padding: 12px 12px 54px;
+    padding: 12px;
   }
 
   .icon-action {
@@ -1384,8 +1415,6 @@ async function onDrop(e: DragEvent) {
   }
 
   .row-actions {
-    right: 18px;
-    bottom: 18px;
     gap: 6px;
   }
 }

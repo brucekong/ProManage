@@ -125,6 +125,7 @@ fn parse_workspace_file(path: &Path) -> Option<ProjectConfig> {
         group: "default".to_string(),
         note: String::new(),
         auto_start: false,
+        is_favorite: false,
         show_build_scripts: false,
         depends_on: vec![],
         env_vars: vec![],
@@ -314,6 +315,7 @@ fn parse_split_package_project(root_dir: &Path) -> Option<ProjectConfig> {
         group: "default".to_string(),
         note: String::new(),
         auto_start: false,
+        is_favorite: false,
         show_build_scripts: false,
         depends_on: vec![],
         env_vars: vec![],
@@ -466,6 +468,7 @@ fn parse_package_json(path: &Path, project_dir: &str) -> Option<ProjectConfig> {
         group: "default".to_string(),
         note: String::new(),
         auto_start: false,
+        is_favorite: false,
         show_build_scripts: false,
         depends_on: vec![],
         env_vars: vec![],
@@ -865,6 +868,7 @@ pub fn config_to_project(config: &ProjectConfig) -> Project {
         pid: None,
         start_time: None,
         auto_start: config.auto_start,
+        is_favorite: config.is_favorite,
         show_build_scripts: config.show_build_scripts,
     }
 }

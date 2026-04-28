@@ -1,7 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "ProStation",
-  "version": "0.1.4",
+  "mainBinaryName": "ProStation",
+  "version": "0.1.5",
   "identifier": "com.xueleikong.prostation",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -41,6 +42,7 @@
       "icons/icon.ico"
     ],
     "macOS": {
+      "bundleName": "ProStation",
       "signingIdentity": "-"
     }
   },

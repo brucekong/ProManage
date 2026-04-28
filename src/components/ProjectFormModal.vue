@@ -4,12 +4,15 @@ import { NSelect, NModal, NButton, NInput, NInputNumber, NCheckbox, NSpace } fro
 import type { ProjectConfig } from "../types/project";
 import * as api from "../api/commands";
 import { isTauriRuntime, nativeOnlyMessage } from "../utils/runtime";
+import { useI18n } from "../i18n";
 
 const props = defineProps<{
   show: boolean;
   project?: ProjectConfig | null;
   otherProjects: ProjectConfig[];
 }>();
+
+const { t } = useI18n();
 
 const emit = defineEmits<{
   close: [];
@@ -28,6 +31,7 @@ const emptyForm = () => ({
   group: "default",
   note: "",
   auto_start: false,
+  is_favorite: false,
   show_build_scripts: false,
   depends_on: [] as string[],
   env_vars: [] as [string, string][],
@@ -53,30 +57,6 @@ watch(
     }
   }
 );
-
-// Dependencies that can be selected (other projects minus self)
-const availableDeps = ref<ProjectConfig[]>([]);
-
-watch(
-  () => props.otherProjects,
-  (others) => {
-    if (props.project) {
-      availableDeps.value = others.filter((p) => p.id !== props.project!.id);
-    } else {
-      availableDeps.value = others;
-    }
-  },
-  { immediate: true }
-);
-
-function toggleDep(depId: string) {
-  const idx = form.depends_on.indexOf(depId);
-  if (idx >= 0) {
-    form.depends_on.splice(idx, 1);
-  } else {
-    form.depends_on.push(depId);
-  }
-}
 
 function isLaunchCommand(command: string) {
   const trimmed = command.trimStart();
@@ -168,11 +148,11 @@ async function loadScriptsFromPackageJson() {
     if (scripts.length > 0) {
       form.command = inferCommandFromScripts(scripts);
     } else {
-      pickerHint.value = "No scripts found in package.json.";
+      pickerHint.value = t("form.noScripts");
     }
   } catch (e) {
     console.error("Read package scripts failed:", e);
-    pickerHint.value = "Failed to read scripts from package.json.";
+    pickerHint.value = t("form.readScriptsFailed");
   } finally {
     scriptsLoading.value = false;
   }
@@ -190,7 +170,7 @@ async function pickFolder() {
     const selected = await open({
       directory: true,
       multiple: false,
-      title: "Select project directory",
+      title: t("dialog.projectDirectory"),
     });
     if (selected) {
       form.project_kind = "folder";
@@ -203,7 +183,7 @@ async function pickFolder() {
     }
   } catch (e) {
     console.error("Folder picker failed:", e);
-    pickerHint.value = "Failed to open the native folder picker.";
+    pickerHint.value = t("form.pickFolderFailed");
   }
 }
 
@@ -219,10 +199,10 @@ async function pickWorkspaceFile() {
     const selected = await open({
       directory: false,
       multiple: false,
-      title: "Select workspace file",
+      title: t("dialog.workspaceFile"),
       filters: [
         {
-          name: "Workspace",
+          name: t("form.workspace"),
           extensions: ["code-workspace", "workspace", "agworkspace"],
         },
       ],
@@ -239,7 +219,7 @@ async function pickWorkspaceFile() {
     }
   } catch (e) {
     console.error("Workspace picker failed:", e);
-    pickerHint.value = "Failed to open the native file picker.";
+    pickerHint.value = t("form.pickWorkspaceFailed");
   }
 }
 
@@ -268,7 +248,7 @@ function close() {
   <NModal
     :show="show"
     preset="card"
-    :title="isEditing ? 'Edit Project' : 'Add Project'"
+    :title="isEditing ? t('form.editTitle') : t('form.addTitle')"
     style="width: 520px; max-width: 90vw;"
     :bordered="false"
     :closable="true"
@@ -276,7 +256,7 @@ function close() {
   >
     <div class="modal-body">
       <div class="field">
-        <label>Project Name</label>
+        <label>{{ t("form.name") }}</label>
         <NInput
           v-model:value="form.name"
           placeholder="e.g. my-admin-app"
@@ -284,21 +264,21 @@ function close() {
       </div>
 
       <div class="field">
-        <label>Path</label>
+        <label>{{ t("form.path") }}</label>
         <div class="field-row">
           <NInput
             v-model:value="form.path"
-            placeholder="/path/to/project or workspace file"
+            :placeholder="t('form.pathPlaceholder')"
             class="flex-1"
           />
-          <NButton @click="pickFolder">Browse</NButton>
-          <NButton @click="pickWorkspaceFile">Workspace</NButton>
+          <NButton @click="pickFolder">{{ t("form.browse") }}</NButton>
+          <NButton @click="pickWorkspaceFile">{{ t("form.workspace") }}</NButton>
         </div>
         <p v-if="pickerHint" class="native-hint">{{ pickerHint }}</p>
       </div>
 
       <div v-if="!isWorkspaceProject" class="field">
-        <label>Start Command</label>
+        <label>{{ t("form.command") }}</label>
         <div class="field-row">
           <NSelect
             v-if="form.scripts && form.scripts.length > 0"
@@ -317,13 +297,13 @@ function close() {
             :disabled="scriptsLoading || !form.path.trim()"
             @click="loadScriptsFromPackageJson"
           >
-            {{ scriptsLoading ? "Loading" : "Load Scripts" }}
+            {{ scriptsLoading ? t("form.loading") : t("form.loadScripts") }}
           </NButton>
         </div>
         <NInput
           v-if="form.scripts && form.scripts.length > 0"
           v-model:value="form.command"
-          placeholder="Custom command"
+          :placeholder="t('form.customCommand')"
           class="command-input"
           style="font-family: var(--font-mono); font-size: 12px;"
         />
@@ -331,7 +311,7 @@ function close() {
 
       <div class="field-row split">
         <div class="field flex-1">
-          <label>Port (0 = auto)</label>
+          <label>{{ t("form.port") }}</label>
           <NInputNumber
             v-model:value="form.port"
             :min="0"
@@ -340,7 +320,7 @@ function close() {
           />
         </div>
         <div class="field flex-1">
-          <label>Group</label>
+          <label>{{ t("form.group") }}</label>
           <NInput
             v-model:value="form.group"
             placeholder="default"
@@ -348,55 +328,32 @@ function close() {
         </div>
       </div>
 
-      <!-- Dependencies -->
-      <div class="field" v-if="availableDeps.length > 0">
-        <label>Dependencies (start before this project)</label>
-        <div class="dep-list">
-          <label
-            v-for="dep in availableDeps"
-            :key="dep.id"
-            class="dep-item"
-            :class="{ checked: form.depends_on.includes(dep.id) }"
-          >
-            <NCheckbox
-              :checked="form.depends_on.includes(dep.id)"
-              @update:checked="toggleDep(dep.id)"
-            />
-            <span class="dep-name">{{ dep.name }}</span>
-            <span class="dep-port" v-if="dep.port">:{{ dep.port }}</span>
-          </label>
-          <div v-if="form.depends_on.length > 0" class="dep-order-hint">
-            Start order: {{ form.depends_on.map(id => availableDeps.find(d => d.id === id)?.name).filter(Boolean).join(' → ') }} → {{ form.name || 'this project' }}
-          </div>
-        </div>
-      </div>
-
       <div class="field">
-        <label>Note (optional)</label>
+        <label>{{ t("form.note") }}</label>
         <NInput
           v-model:value="form.note"
-          placeholder="Any notes about this project"
+          :placeholder="t('form.notePlaceholder')"
         />
       </div>
 
       <label class="option-row">
         <NCheckbox v-model:checked="form.show_build_scripts" />
         <span>
-          <strong>Show local build actions</strong>
-          <small>Enable only for projects that need local build scripts in ProStation.</small>
+          <strong>{{ t("form.showBuild") }}</strong>
+          <small>{{ t("form.showBuildDesc") }}</small>
         </span>
       </label>
     </div>
 
     <template #footer>
       <NSpace justify="end">
-        <NButton @click="close">Cancel</NButton>
+        <NButton @click="close">{{ t("common.cancel") }}</NButton>
         <NButton
           type="primary"
           @click="submit"
           :disabled="!form.name.trim() || !form.path.trim()"
         >
-          {{ isEditing ? "Save Changes" : "Add Project" }}
+          {{ isEditing ? t("form.saveChanges") : t("project.addProject") }}
         </NButton>
       </NSpace>
     </template>
@@ -448,54 +405,6 @@ function close() {
   color: var(--color-orange);
   font-size: 12px;
   line-height: 1.4;
-}
-
-/* ── Dependencies ──────────────── */
-.dep-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  background: var(--color-bg);
-  border-radius: 8px;
-  padding: 8px;
-  max-height: 180px;
-  overflow-y: auto;
-}
-
-.dep-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.15s;
-  font-size: 13px;
-}
-
-.dep-item:hover {
-  background: var(--color-hover);
-}
-
-.dep-item.checked {
-  background: rgba(0, 122, 255, 0.06);
-}
-
-.dep-name {
-  color: var(--color-text);
-  font-weight: 500;
-}
-
-.dep-port {
-  color: var(--color-muted);
-  font-size: 11px;
-}
-
-.dep-order-hint {
-  font-size: 11px;
-  color: var(--color-primary);
-  padding: 4px 8px;
-  font-weight: 500;
 }
 
 .option-row {

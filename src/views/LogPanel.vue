@@ -2,8 +2,10 @@
 import { ref, computed, onMounted } from "vue";
 import { NSelect } from "naive-ui";
 import { useProjectStore } from "../stores/project";
+import { useI18n } from "../i18n";
 
 const store = useProjectStore();
+const { t } = useI18n();
 
 interface LogEntry {
   timestamp: string;
@@ -41,15 +43,15 @@ function logClass(level: string) {
   }
 }
 
-const levelOptions = [
-  { label: "All Levels", value: "all" },
-  { label: "Info", value: "info" },
-  { label: "Warning", value: "warn" },
-  { label: "Error", value: "error" },
-];
+const levelOptions = computed(() => [
+  { label: t("logs.allLevels"), value: "all" },
+  { label: t("logs.info"), value: "info" },
+  { label: t("logs.warning"), value: "warn" },
+  { label: t("logs.error"), value: "error" },
+]);
 
 const projectOptions = computed(() => [
-  { label: "All Projects", value: "all" },
+  { label: t("logs.allProjects"), value: "all" },
   ...store.projects.map((p) => ({ label: p.name, value: p.id })),
 ]);
 
@@ -66,7 +68,7 @@ onMounted(async () => {
         <NSelect v-model:value="selectedProject" :options="projectOptions" class="log-select" />
       </div>
 
-      <button class="btn btn-clear" @click="logs = []">Clear</button>
+      <button class="btn btn-clear" @click="logs = []">{{ t("common.clear") }}</button>
     </div>
 
     <div class="log-list" v-if="filteredLogs().length > 0">
@@ -83,7 +85,7 @@ onMounted(async () => {
     </div>
 
     <div class="log-empty" v-else>
-      <p>No logs yet. Start/stop projects to see logs here.</p>
+      <p>{{ t("logs.empty") }}</p>
     </div>
   </div>
 </template>

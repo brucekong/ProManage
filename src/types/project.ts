@@ -12,6 +12,7 @@ export interface ProjectConfig {
   group: string;
   note: string;
   auto_start: boolean;
+  is_favorite?: boolean;
   show_build_scripts?: boolean;
   depends_on: string[];
   env_vars: [string, string][];
@@ -32,6 +33,7 @@ export interface Project {
   pid: number | null;
   start_time: string | null;
   auto_start: boolean;
+  is_favorite?: boolean;
   show_build_scripts?: boolean;
 }
 
@@ -41,6 +43,7 @@ export interface AppConfig {
   port_range_end: number;
   log_retention_days: number;
   theme: "system" | "light" | "dark";
+  language: "en" | "zh";
   minimize_to_tray: boolean;
   auto_restore: boolean;
   auto_check_updates: boolean;

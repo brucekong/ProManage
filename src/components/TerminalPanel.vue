@@ -7,8 +7,10 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { useProjectStore, type ProjectRunTarget } from "../stores/project";
 import type { ProcessOutputLine } from "../stores/project";
 import { detectPortsFromOutput } from "../utils/ports";
+import { useI18n } from "../i18n";
 
 const store = useProjectStore();
+const { t, status: statusText } = useI18n();
 const outputEl = ref<HTMLDivElement | null>(null);
 const xtermEl = ref<HTMLDivElement | null>(null);
 const autoScroll = ref(true);
@@ -150,9 +152,6 @@ const processOutputListener = ((event: Event) => {
 const selectedProject = computed(() => store.selectedProject);
 const isWorkspaceProject = computed(() => selectedProject.value?.project_kind === "workspace");
 const hasRunTargets = computed(() => store.selectedProjectTargets.length > 0);
-const showUpdateBanner = computed(() =>
-  ["checking", "available", "installing", "installed", "error"].includes(store.appUpdateStatus)
-);
 const status = computed(() => {
   const id = store.selectedProcessId || selectedProject.value?.id;
   return id ? store.processStatuses[id] || "Stopped" : "Idle";
@@ -243,14 +242,6 @@ async function restartCurrentTarget() {
   await startCurrentTarget();
 }
 
-async function installUpdate() {
-  await store.installAvailableAppUpdate();
-}
-
-async function relaunchApp() {
-  await store.relaunchApp();
-}
-
 async function sendInput() {
   inputError.value = "";
   const project = selectedProject.value;
@@ -262,7 +253,7 @@ async function sendInput() {
     terminalInput.value = "";
   } catch (e) {
     console.error("Write terminal input failed:", e);
-    inputError.value = "Unable to send input to the running process.";
+    inputError.value = t("terminal.inputError");
   }
 }
 
@@ -276,7 +267,7 @@ async function sendTerminalData(data: string) {
     await store.writeProjectInput(processId, data);
   } catch (e) {
     console.error("Write terminal input failed:", e);
-    inputError.value = "Unable to send input to the running process.";
+    inputError.value = t("terminal.inputError");
   }
 }
 
@@ -395,58 +386,28 @@ onBeforeUnmount(() => {
   <aside class="terminal-panel">
     <div class="terminal-topbar">
       <div class="terminal-title">
-        <span class="eyebrow">Live Terminal</span>
-        <strong>{{ store.selectedProcessLabel || selectedProject?.name || "No Project Selected" }}</strong>
+        <span class="eyebrow">{{ t("terminal.title") }}</span>
+        <strong>{{ store.selectedProcessLabel || selectedProject?.name || t("terminal.noProject") }}</strong>
       </div>
-      <span class="terminal-status" :class="status.toLowerCase()">{{ status }}</span>
-    </div>
-
-    <div v-if="showUpdateBanner" class="update-banner" :class="store.appUpdateStatus">
-      <div class="update-copy">
-        <span class="update-kicker">App Update</span>
-        <strong>
-          {{
-            store.availableAppUpdate
-              ? `ProStation ${store.availableAppUpdate.version}`
-              : "Updater"
-          }}
-        </strong>
-        <span>{{ store.appUpdateMessage }}</span>
-      </div>
-      <div class="update-actions">
-        <button
-          v-if="store.appUpdateStatus === 'available'"
-          class="update-btn"
-          @click="installUpdate"
-        >
-          Install
-        </button>
-        <button
-          v-if="store.appUpdateStatus === 'installed'"
-          class="update-btn"
-          @click="relaunchApp"
-        >
-          Restart
-        </button>
-      </div>
+      <span class="terminal-status" :class="status.toLowerCase()">{{ statusText(status) }}</span>
     </div>
 
     <div v-if="selectedProject" class="terminal-meta">
       <div>
-        <span>Path</span>
+        <span>{{ t("terminal.path") }}</span>
         <strong :title="selectedProject.path">{{ selectedProject.path }}</strong>
       </div>
       <div v-if="!isWorkspaceProject || hasRunTargets">
-        <span>Command</span>
+        <span>{{ t("terminal.command") }}</span>
         <strong>{{ selectedTarget?.command || selectedProject.command }}</strong>
       </div>
       <div v-if="!isWorkspaceProject || hasRunTargets">
-        <span>Port</span>
-        <strong>{{ detectedPorts.length ? detectedPorts.map(port => `:${port}`).join(", ") : "Detecting" }}</strong>
+        <span>{{ t("terminal.port") }}</span>
+        <strong>{{ detectedPorts.length ? detectedPorts.map(port => `:${port}`).join(", ") : t("terminal.detecting") }}</strong>
       </div>
       <div v-if="isWorkspaceProject">
-        <span>Type</span>
-        <strong>Antigravity workspace</strong>
+        <span>{{ t("terminal.type") }}</span>
+        <strong>{{ t("terminal.workspaceType") }}</strong>
       </div>
     </div>
 
@@ -471,19 +432,19 @@ onBeforeUnmount(() => {
         :disabled="['Starting', 'Running'].includes(status)"
         @click="startCurrentTarget"
       >
-        Start
+        {{ t("common.start") }}
       </button>
       <button
         class="terminal-btn stop"
         :disabled="!['Starting', 'Running'].includes(status)"
         @click="stopCurrentTarget"
       >
-        Stop
+        {{ t("common.stop") }}
       </button>
       <button class="terminal-btn" @click="restartCurrentTarget">
-        Restart
+        {{ t("common.restart") }}
       </button>
-      <button class="terminal-btn muted" @click="clearOutput">Clear</button>
+      <button class="terminal-btn muted" @click="clearOutput">{{ t("common.clear") }}</button>
     </div>
 
     <div ref="outputEl" class="terminal-output" @click="focusTerminal" @scroll="onOutputScroll">
@@ -492,8 +453,8 @@ onBeforeUnmount(() => {
       </template>
       <div v-else class="terminal-placeholder">
         <span class="scan-ring"></span>
-        <strong>Select a project</strong>
-        <span>Project output will stream here.</span>
+        <strong>{{ t("terminal.selectProject") }}</strong>
+        <span>{{ t("terminal.outputHint") }}</span>
       </div>
     </div>
 
@@ -505,7 +466,7 @@ onBeforeUnmount(() => {
           class="terminal-input"
           type="text"
           :disabled="!['Starting', 'Running'].includes(status)"
-          placeholder="Optional quick input. Click terminal for arrows and Enter."
+          :placeholder="t('terminal.inputPlaceholder')"
           @keyup.enter="sendInput"
         />
         <button
@@ -513,7 +474,7 @@ onBeforeUnmount(() => {
           :disabled="!['Starting', 'Running'].includes(status) || !terminalInput"
           @click="sendInput"
         >
-          Send
+          {{ t("common.send") }}
         </button>
       </div>
       <p v-if="inputError" class="terminal-input-error">{{ inputError }}</p>
@@ -601,66 +562,6 @@ onBeforeUnmount(() => {
   gap: 9px;
   padding: 16px 18px;
   border-bottom: 1px solid rgba(190, 224, 255, 0.08);
-}
-
-.update-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 18px;
-  border-bottom: 1px solid rgba(190, 224, 255, 0.08);
-  background: rgba(105, 186, 245, 0.06);
-}
-
-.update-banner.available,
-.update-banner.installed {
-  background: linear-gradient(90deg, rgba(105, 186, 245, 0.08), rgba(134, 217, 233, 0.05));
-}
-
-.update-banner.error {
-  background: rgba(255, 109, 130, 0.08);
-}
-
-.update-copy {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.update-kicker {
-  color: var(--color-muted);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-}
-
-.update-copy strong {
-  color: var(--color-text);
-  font-size: 13px;
-}
-
-.update-copy span:last-child {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-  line-height: 1.4;
-}
-
-.update-actions {
-  flex-shrink: 0;
-}
-
-.update-btn {
-  height: 32px;
-  min-width: 74px;
-  border: 1px solid rgba(105, 186, 245, 0.28);
-  border-radius: 10px;
-  background: rgba(105, 186, 245, 0.12);
-  color: #d8f0ff;
-  font-size: 12px;
-  font-weight: 800;
-  cursor: pointer;
 }
 
 .terminal-meta div {
