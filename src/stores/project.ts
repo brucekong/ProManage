@@ -8,6 +8,9 @@ import * as api from "../api/commands";
 
 const MAX_OUTPUT_LINES = 20000;
 const READINESS_CHECK_INTERVAL = 500;
+const DEFAULT_UPDATE_ENDPOINT = "https://github.com/brucekong/ProManage/releases/latest/download/latest.json";
+const DEFAULT_UPDATER_PUBKEY =
+  "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEZGQ0Q2NTM3MzFCNDhBMjIKUldRaWlyUXhOMlhOLzQxRUZ0YVd5WFlSamRKWDY2L3NSVlE1eXY1NkYyRGJJMDFJbDZhUFI4V1IK";
 
 export interface ProcessOutputLine {
   project_id: string;
@@ -45,8 +48,8 @@ export const useProjectStore = defineStore("project", () => {
     minimize_to_tray: true,
     auto_restore: false,
     auto_check_updates: true,
-    update_endpoint: "https://github.com/brucekong/ProManage/releases/latest/download/latest.json",
-    updater_pubkey: "",
+    update_endpoint: DEFAULT_UPDATE_ENDPOINT,
+    updater_pubkey: DEFAULT_UPDATER_PUBKEY,
     ide_vscode_command: "code",
     ide_antigravity_command: "ag",
   });

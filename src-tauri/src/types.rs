@@ -1,5 +1,10 @@
 use serde::{Deserialize, Serialize};
 
+pub const DEFAULT_UPDATE_ENDPOINT: &str =
+    "https://github.com/brucekong/ProManage/releases/latest/download/latest.json";
+pub const DEFAULT_UPDATER_PUBKEY: &str =
+    "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEZGQ0Q2NTM3MzFCNDhBMjIKUldRaWlyUXhOMlhOLzQxRUZ0YVd5WFlSamRKWDY2L3NSVlE1eXY1NkYyRGJJMDFJbDZhUFI4V1IK";
+
 fn default_project_kind() -> String {
     "folder".to_string()
 }
@@ -88,10 +93,8 @@ impl Default for AppConfig {
             minimize_to_tray: true,
             auto_restore: false,
             auto_check_updates: true,
-            update_endpoint:
-                "https://github.com/brucekong/ProManage/releases/latest/download/latest.json"
-                    .to_string(),
-            updater_pubkey: String::new(),
+            update_endpoint: DEFAULT_UPDATE_ENDPOINT.to_string(),
+            updater_pubkey: DEFAULT_UPDATER_PUBKEY.to_string(),
             ide_vscode_command: "code".to_string(),
             ide_antigravity_command: "ag".to_string(),
         }
