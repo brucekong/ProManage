@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { NButton, NConfigProvider, NModal, NSpace, darkTheme } from "naive-ui";
 import { useProjectStore } from "./stores/project";
 import ProjectList from "./views/ProjectList.vue";
@@ -13,149 +13,71 @@ const store = useProjectStore();
 const { t } = useI18n();
 const appVersion = packageJson.version;
 const updateModalVisible = ref(false);
-const systemPrefersDark = ref(true);
-
-const darkThemeOverrides = {
+const themeOverrides = {
   common: {
-    primaryColor: "#35d1df",
-    primaryColorHover: "#b8f2f6",
-    primaryColorPressed: "#1497a3",
-    primaryColorSuppl: "#7fe9f1",
-    successColor: "#76c893",
-    warningColor: "#ffc131",
+    primaryColor: "#8fa7bd",
+    primaryColorHover: "#a4c4d7",
+    primaryColorPressed: "#6f8598",
+    primaryColorSuppl: "#b6c8d6",
+    successColor: "#7fb5a2",
+    warningColor: "#ffb02e",
     errorColor: "#ff4568",
-    infoColor: "#35d1df",
-    textColorBase: "#f4f2ea",
-    bodyColor: "#111513",
-    modalColor: "rgba(20, 24, 22, 0.88)",
-    cardColor: "rgba(20, 24, 22, 0.86)",
-    popoverColor: "rgba(20, 24, 22, 0.94)",
-    borderColor: "rgba(198, 220, 215, 0.16)",
+    infoColor: "#a4c4d7",
+    textColorBase: "#edf4fb",
+    bodyColor: "#09111a",
+    modalColor: "rgba(16, 26, 36, 0.74)",
+    cardColor: "rgba(16, 26, 36, 0.74)",
+    popoverColor: "rgba(16, 26, 36, 0.84)",
+    borderColor: "rgba(112, 133, 151, 0.18)",
   },
   Button: {
     borderRadiusMedium: "8px",
-    textColorPrimary: "#071315",
-    textColorHover: "#b8f2f6",
-    color: "rgba(255, 244, 206, 0.055)",
-    colorHover: "rgba(53, 209, 223, 0.1)",
-    colorPressed: "rgba(53, 209, 223, 0.16)",
-    colorPrimary: "linear-gradient(135deg, #35d1df, #ffc131)",
-    colorHoverPrimary: "linear-gradient(135deg, #7fe9f1, #ffd56f)",
-    colorPressedPrimary: "linear-gradient(135deg, #1497a3, #c98b15)",
-    borderHover: "1px solid #35d1df",
-    borderFocus: "1px solid #35d1df",
+    textColorPrimary: "#edf4fb",
+    textColorHover: "#a4c4d7",
+    color: "rgba(255, 255, 255, 0.06)",
+    colorHover: "rgba(112, 133, 151, 0.12)",
+    colorPressed: "rgba(112, 133, 151, 0.18)",
+    colorPrimary: "linear-gradient(135deg, #8fa7bd, #a4c4d7)",
+    colorHoverPrimary: "linear-gradient(135deg, #a5b7c7, #c8d7e2)",
+    colorPressedPrimary: "linear-gradient(135deg, #62788c, #879bac)",
+    borderHover: "1px solid #a4c4d7",
+    borderFocus: "1px solid #a4c4d7",
   },
   Input: {
-    color: "rgba(255, 244, 206, 0.06)",
-    colorFocus: "rgba(53, 209, 223, 0.08)",
-    border: "1px solid rgba(198, 220, 215, 0.16)",
-    borderHover: "1px solid #35d1df",
-    borderFocus: "1px solid #35d1df",
-    boxShadowFocus: "0 0 0 2px rgba(53, 209, 223, 0.16)",
-    placeholderColor: "rgba(211, 208, 198, 0.48)",
+    color: "rgba(255, 255, 255, 0.08)",
+    colorFocus: "rgba(112, 133, 151, 0.12)",
+    border: "1px solid rgba(112, 133, 151, 0.16)",
+    borderHover: "1px solid #8fa7bd",
+    borderFocus: "1px solid #8fa7bd",
+    boxShadowFocus: "0 0 0 2px rgba(112, 133, 151, 0.18)",
+    placeholderColor: "rgba(200, 213, 223, 0.46)",
   },
   InputNumber: {
     peers: {
       Input: {
-        color: "rgba(255, 244, 206, 0.06)",
-        colorFocus: "rgba(53, 209, 223, 0.08)",
+        color: "rgba(255, 255, 255, 0.08)",
+        colorFocus: "rgba(112, 133, 151, 0.12)",
       },
     },
   },
   Select: {
     peers: {
       InternalSelection: {
-        color: "rgba(255, 244, 206, 0.06)",
-        colorActive: "rgba(53, 209, 223, 0.08)",
-        border: "1px solid rgba(198, 220, 215, 0.16)",
-        borderHover: "1px solid #35d1df",
-        borderActive: "1px solid #35d1df",
-        boxShadowActive: "0 0 0 2px rgba(53, 209, 223, 0.16)",
+        color: "rgba(255, 255, 255, 0.08)",
+        colorActive: "rgba(112, 133, 151, 0.12)",
+        border: "1px solid rgba(112, 133, 151, 0.16)",
+        borderHover: "1px solid #8fa7bd",
+        borderActive: "1px solid #8fa7bd",
+        boxShadowActive: "0 0 0 2px rgba(112, 133, 151, 0.18)",
       },
       InternalSelectMenu: {
-        color: "rgba(20, 24, 22, 0.96)",
-        optionColorPending: "rgba(53, 209, 223, 0.1)",
-        optionColorActive: "rgba(255, 193, 49, 0.11)",
+        color: "rgba(16, 26, 36, 0.92)",
+        optionColorPending: "rgba(112, 133, 151, 0.14)",
+        optionColorActive: "rgba(112, 133, 151, 0.2)",
       },
     },
   },
 };
-
-const lightThemeOverrides = {
-  common: {
-    primaryColor: "#159eab",
-    primaryColorHover: "#20b8c5",
-    primaryColorPressed: "#0e7882",
-    primaryColorSuppl: "#6bdde6",
-    successColor: "#4b9270",
-    warningColor: "#c88a16",
-    errorColor: "#d83d5b",
-    infoColor: "#159eab",
-    textColorBase: "#172320",
-    bodyColor: "#f5f1e7",
-    modalColor: "rgba(255, 252, 242, 0.96)",
-    cardColor: "rgba(255, 252, 242, 0.92)",
-    popoverColor: "rgba(255, 252, 242, 0.98)",
-    borderColor: "rgba(38, 104, 105, 0.18)",
-  },
-  Button: {
-    borderRadiusMedium: "8px",
-    textColorPrimary: "#071315",
-    textColorHover: "#159eab",
-    color: "rgba(255, 252, 242, 0.74)",
-    colorHover: "rgba(32, 169, 180, 0.1)",
-    colorPressed: "rgba(32, 169, 180, 0.16)",
-    colorPrimary: "linear-gradient(135deg, #35d1df, #ffc131)",
-    colorHoverPrimary: "linear-gradient(135deg, #52dae5, #ffd36a)",
-    colorPressedPrimary: "linear-gradient(135deg, #159eab, #c88a16)",
-    borderHover: "1px solid #159eab",
-    borderFocus: "1px solid #159eab",
-  },
-  Input: {
-    color: "rgba(255, 252, 242, 0.74)",
-    colorFocus: "rgba(255, 252, 242, 0.94)",
-    border: "1px solid rgba(38, 104, 105, 0.2)",
-    borderHover: "1px solid #159eab",
-    borderFocus: "1px solid #159eab",
-    boxShadowFocus: "0 0 0 2px rgba(32, 169, 180, 0.15)",
-    placeholderColor: "rgba(65, 86, 80, 0.52)",
-  },
-  InputNumber: {
-    peers: {
-      Input: {
-        color: "rgba(255, 252, 242, 0.74)",
-        colorFocus: "rgba(255, 252, 242, 0.94)",
-      },
-    },
-  },
-  Select: {
-    peers: {
-      InternalSelection: {
-        color: "rgba(255, 252, 242, 0.74)",
-        colorActive: "rgba(255, 252, 242, 0.94)",
-        border: "1px solid rgba(38, 104, 105, 0.2)",
-        borderHover: "1px solid #159eab",
-        borderActive: "1px solid #159eab",
-        boxShadowActive: "0 0 0 2px rgba(32, 169, 180, 0.15)",
-      },
-      InternalSelectMenu: {
-        color: "rgba(255, 252, 242, 0.98)",
-        optionColorPending: "rgba(32, 169, 180, 0.1)",
-        optionColorActive: "rgba(255, 193, 49, 0.13)",
-      },
-    },
-  },
-};
-
-const resolvedTheme = computed<"light" | "dark">(() => {
-  if (store.config.theme === "light") return "light";
-  if (store.config.theme === "dark") return "dark";
-  return systemPrefersDark.value ? "dark" : "light";
-});
-const naiveTheme = computed(() => (resolvedTheme.value === "dark" ? darkTheme : null));
-const themeOverrides = computed(() =>
-  resolvedTheme.value === "dark" ? darkThemeOverrides : lightThemeOverrides
-);
 
 const tabs = [
   { id: "projects" as const, labelKey: "nav.projects", icon: "P" },
@@ -163,20 +85,7 @@ const tabs = [
   { id: "settings" as const, labelKey: "nav.settings", icon: "S" },
 ];
 
-let themeMediaQuery: MediaQueryList | null = null;
-let removeThemeListener: (() => void) | null = null;
-
 onMounted(async () => {
-  if (typeof window !== "undefined") {
-    themeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    systemPrefersDark.value = themeMediaQuery.matches;
-    const handleThemeChange = (event: MediaQueryListEvent) => {
-      systemPrefersDark.value = event.matches;
-    };
-    themeMediaQuery.addEventListener("change", handleThemeChange);
-    removeThemeListener = () => themeMediaQuery?.removeEventListener("change", handleThemeChange);
-  }
-
   store.setupEventListener();
   await store.loadConfig();
   await store.loadProjects();
@@ -186,18 +95,6 @@ onMounted(async () => {
     await store.checkForAppUpdate({ silent: true });
   }
 });
-
-onUnmounted(() => {
-  removeThemeListener?.();
-});
-
-watch(
-  resolvedTheme,
-  (theme) => {
-    document.documentElement.dataset.theme = theme;
-  },
-  { immediate: true }
-);
 
 const showUpdateActions = computed(() =>
   ["disabled", "checking", "available", "installing", "installed", "up-to-date", "error"].includes(store.appUpdateStatus)
@@ -235,8 +132,8 @@ async function relaunchApp() {
 </script>
 
 <template>
-  <NConfigProvider :theme="naiveTheme" :theme-overrides="themeOverrides">
-  <div class="app-layout" :data-theme="resolvedTheme">
+  <NConfigProvider :theme="darkTheme" :theme-overrides="themeOverrides">
+  <div class="app-layout">
     <aside class="sidebar">
       <div class="sidebar-header">
         <h1 class="app-title">ProStation</h1>
@@ -340,14 +237,11 @@ async function relaunchApp() {
   height: 100vh;
   overflow: hidden;
   background:
-    radial-gradient(ellipse 72% 56% at 0% 0%, var(--app-glow-start), transparent 66%),
-    radial-gradient(ellipse 62% 48% at 98% 0%, var(--app-glow-end), transparent 70%),
-    radial-gradient(ellipse 72% 42% at 52% 10%, var(--app-glow-center), transparent 76%),
-    linear-gradient(var(--app-grid-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--app-grid-line) 1px, transparent 1px),
-    linear-gradient(180deg, var(--app-sheen), transparent 38%),
+    radial-gradient(ellipse 72% 56% at 0% 0%, rgba(38, 77, 75, 0.32), transparent 66%),
+    radial-gradient(ellipse 62% 48% at 98% 0%, rgba(29, 51, 82, 0.34), transparent 70%),
+    radial-gradient(ellipse 72% 42% at 52% 10%, rgba(23, 40, 57, 0.3), transparent 76%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0) 38%),
     var(--color-bg);
-  background-size: auto, auto, auto, 24px 24px, 24px 24px, auto, auto;
 }
 
 .app-layout::before {
@@ -356,8 +250,8 @@ async function relaunchApp() {
   content: "";
   pointer-events: none;
   background:
-    linear-gradient(90deg, var(--app-edge-start), transparent 24%, transparent 78%, var(--app-edge-end)),
-    linear-gradient(180deg, transparent 0%, var(--app-bottom-fade) 100%);
+    linear-gradient(90deg, rgba(68, 95, 92, 0.1), transparent 24%, transparent 78%, rgba(62, 82, 117, 0.14)),
+    linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.36) 74%, rgba(0, 0, 0, 0.7) 100%);
 }
 
 .sidebar {
@@ -365,18 +259,18 @@ async function relaunchApp() {
   z-index: 1;
   width: 224px;
   flex-shrink: 0;
-  background: var(--sidebar-bg);
-  border-right: 1px solid var(--sidebar-border);
+  background: rgba(8, 14, 21, 0.72);
+  border-right: 1px solid rgba(112, 133, 151, 0.15);
   display: flex;
   flex-direction: column;
   padding: 0;
-  box-shadow: 20px 0 70px var(--sidebar-shadow);
+  box-shadow: 20px 0 70px rgba(0, 0, 0, 0.24);
   backdrop-filter: blur(26px) saturate(150%);
 }
 
 .sidebar-header {
   padding: 22px 18px 18px;
-  border-bottom: 1px solid var(--sidebar-border);
+  border-bottom: 1px solid rgba(112, 133, 151, 0.13);
 }
 
 .brand-mark {
@@ -385,15 +279,15 @@ async function relaunchApp() {
   display: grid;
   place-items: center;
   margin-bottom: 12px;
-  border: 1px solid rgba(53, 209, 223, 0.24);
+  border: 1px solid rgba(112, 133, 151, 0.22);
   border-radius: 12px;
   background:
-    linear-gradient(145deg, rgba(53, 209, 223, 0.2), rgba(255, 193, 49, 0.16));
+    linear-gradient(145deg, rgba(164, 196, 215, 0.18), rgba(112, 133, 151, 0.24));
   color: var(--color-text);
   font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 800;
-  box-shadow: 0 0 36px rgba(53, 209, 223, 0.18);
+  box-shadow: 0 0 36px rgba(112, 133, 151, 0.26);
 }
 
 .app-title {
@@ -435,16 +329,16 @@ async function relaunchApp() {
 }
 
 .nav-item:hover {
-  border-color: rgba(53, 209, 223, 0.24);
-  background: rgba(53, 209, 223, 0.08);
+  border-color: rgba(112, 133, 151, 0.22);
+  background: rgba(112, 133, 151, 0.1);
   color: var(--color-text);
 }
 
 .nav-item.active {
-  border-color: rgba(53, 209, 223, 0.44);
-  background: linear-gradient(90deg, rgba(53, 209, 223, 0.18), rgba(255, 193, 49, 0.08));
+  border-color: rgba(112, 133, 151, 0.46);
+  background: linear-gradient(90deg, rgba(112, 133, 151, 0.24), rgba(164, 196, 215, 0.1));
   color: var(--color-text);
-  box-shadow: inset 3px 0 0 var(--color-primary), 0 0 34px rgba(53, 209, 223, 0.15);
+  box-shadow: inset 3px 0 0 var(--color-primary), 0 0 34px rgba(112, 133, 151, 0.2);
 }
 
 .nav-icon {
@@ -452,7 +346,7 @@ async function relaunchApp() {
   height: 24px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(53, 209, 223, 0.18);
+  border: 1px solid rgba(112, 133, 151, 0.18);
   border-radius: 8px;
   color: var(--color-primary);
   font-family: var(--font-mono);
@@ -476,7 +370,7 @@ async function relaunchApp() {
   flex-direction: column;
   gap: 8px;
   padding: 14px 16px;
-  border-top: 1px solid var(--sidebar-border);
+  border-top: 1px solid rgba(112, 133, 151, 0.13);
 }
 
 .system-pulse {
@@ -527,7 +421,7 @@ async function relaunchApp() {
   margin-top: 4px;
   border-radius: 999px;
   background: var(--color-primary);
-  box-shadow: 0 0 18px rgba(53, 209, 223, 0.45);
+  box-shadow: 0 0 18px rgba(112, 133, 151, 0.55);
 }
 
 .update-dialog.available .update-dialog-mark,

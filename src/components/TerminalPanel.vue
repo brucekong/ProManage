@@ -281,26 +281,26 @@ function initTerminal() {
     lineHeight: 1.45,
     scrollback: 20000,
     theme: {
-      background: "#111513",
-      foreground: "#d3d0c6",
-      cursor: "#35d1df",
-      selectionBackground: "#1a4b4d",
-      black: "#111513",
+      background: "#060b13",
+      foreground: "#c8d5df",
+      cursor: "#8fa7bd",
+      selectionBackground: "#183041",
+      black: "#09111a",
       red: "#ff4568",
-      green: "#76c893",
-      yellow: "#ffc131",
-      blue: "#35d1df",
-      magenta: "#b98cff",
-      cyan: "#b8f2f6",
-      white: "#f4f2ea",
-      brightBlack: "#8f9892",
+      green: "#7fb5a2",
+      yellow: "#ffb02e",
+      blue: "#8fa7bd",
+      magenta: "#6f7d99",
+      cyan: "#a4c4d7",
+      white: "#edf4fb",
+      brightBlack: "#7f909e",
       brightRed: "#ff7a91",
-      brightGreen: "#9edcae",
-      brightYellow: "#ffd56f",
-      brightBlue: "#7fe9f1",
-      brightMagenta: "#d2b6ff",
-      brightCyan: "#d6fbfd",
-      brightWhite: "#fffaf0",
+      brightGreen: "#a7cdbd",
+      brightYellow: "#ffd166",
+      brightBlue: "#b6c8d6",
+      brightMagenta: "#e2c18a",
+      brightCyan: "#d4e5ee",
+      brightWhite: "#f6fbff",
     },
   });
   fitAddon = new FitAddon();
@@ -490,10 +490,12 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   border-left: 1px solid rgba(112, 133, 151, 0.16);
-  background: var(--terminal-panel-bg);
+  background:
+    radial-gradient(ellipse 88% 44% at 50% 0%, rgba(112, 133, 151, 0.18), transparent 72%),
+    linear-gradient(180deg, rgba(12, 23, 34, 0.72), rgba(4, 9, 14, 0.84));
   box-shadow:
     inset 1px 0 0 rgba(255, 255, 255, 0.04),
-    -24px 0 70px var(--terminal-panel-shadow);
+    -24px 0 70px rgba(0, 0, 0, 0.24);
   backdrop-filter: blur(28px) saturate(160%);
   -webkit-backdrop-filter: blur(28px) saturate(160%);
 }
@@ -626,8 +628,16 @@ onBeforeUnmount(() => {
   background: rgba(112, 133, 151, 0.05);
 }
 
+.terminal-tab.web {
+  color: #eef0eb;
+}
+
+.terminal-tab.api {
+  color: #e5e8e1;
+}
+
 .terminal-tab.build {
-  color: var(--color-orange);
+  color: #e2c18a;
 }
 
 .terminal-tab.active {
@@ -666,7 +676,7 @@ onBeforeUnmount(() => {
   height: 34px;
   border: 1px solid rgba(112, 133, 151, 0.11);
   border-radius: 12px;
-  background: var(--control-bg);
+  background: rgba(255, 255, 255, 0.045);
   color: var(--color-text-secondary);
   font-size: 12px;
   font-weight: 700;
@@ -702,7 +712,9 @@ onBeforeUnmount(() => {
   min-height: 0;
   overflow: auto;
   padding: 18px;
-  background: var(--terminal-output-bg);
+  background:
+    radial-gradient(ellipse 90% 34% at 50% 0%, rgba(112, 133, 151, 0.08), transparent 70%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent);
   font-family: var(--font-mono);
   font-size: 12px;
   line-height: 1.6;
@@ -739,7 +751,7 @@ onBeforeUnmount(() => {
   min-height: 42px;
   border: 1px solid rgba(112, 133, 151, 0.12);
   border-radius: 14px;
-  background: var(--terminal-input-bg);
+  background: rgba(9, 8, 10, 0.62);
   padding: 0 8px 0 12px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
@@ -779,7 +791,7 @@ onBeforeUnmount(() => {
   border: 1px solid rgba(112, 133, 151, 0.28);
   border-radius: 10px;
   background: rgba(112, 133, 151, 0.12);
-  color: var(--color-text);
+  color: #eef0eb;
   font-size: 12px;
   font-weight: 800;
   cursor: pointer;
@@ -805,7 +817,7 @@ onBeforeUnmount(() => {
 }
 
 .terminal-line.boot {
-  color: var(--color-text);
+  color: #eef0eb;
 }
 
 .terminal-line.stderr {
