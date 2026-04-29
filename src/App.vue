@@ -32,16 +32,36 @@ const themeOverrides = {
   },
   Button: {
     borderRadiusMedium: "8px",
+    textColor: "#c8d5df",
+    textColorHover: "#edf4fb",
+    textColorPressed: "#edf4fb",
+    textColorFocus: "#edf4fb",
+    textColorDisabled: "rgba(200, 213, 223, 0.42)",
     textColorPrimary: "#edf4fb",
-    textColorHover: "#a4c4d7",
+    textColorHoverPrimary: "#edf4fb",
+    textColorPressedPrimary: "#edf4fb",
+    textColorFocusPrimary: "#edf4fb",
+    textColorDisabledPrimary: "rgba(237, 244, 251, 0.46)",
     color: "rgba(255, 255, 255, 0.06)",
     colorHover: "rgba(112, 133, 151, 0.12)",
     colorPressed: "rgba(112, 133, 151, 0.18)",
+    colorFocus: "rgba(112, 133, 151, 0.12)",
+    colorDisabled: "rgba(255, 255, 255, 0.035)",
     colorPrimary: "linear-gradient(135deg, #8fa7bd, #a4c4d7)",
     colorHoverPrimary: "linear-gradient(135deg, #a5b7c7, #c8d7e2)",
     colorPressedPrimary: "linear-gradient(135deg, #62788c, #879bac)",
+    colorFocusPrimary: "linear-gradient(135deg, #a5b7c7, #c8d7e2)",
+    colorDisabledPrimary: "rgba(143, 167, 189, 0.18)",
+    border: "1px solid rgba(112, 133, 151, 0.22)",
     borderHover: "1px solid #a4c4d7",
     borderFocus: "1px solid #a4c4d7",
+    borderPressed: "1px solid #8fa7bd",
+    borderDisabled: "1px solid rgba(112, 133, 151, 0.16)",
+    borderPrimary: "1px solid rgba(164, 196, 215, 0.62)",
+    borderHoverPrimary: "1px solid rgba(210, 230, 241, 0.86)",
+    borderPressedPrimary: "1px solid rgba(164, 196, 215, 0.68)",
+    borderFocusPrimary: "1px solid rgba(210, 230, 241, 0.86)",
+    borderDisabledPrimary: "1px solid rgba(143, 167, 189, 0.24)",
   },
   Input: {
     color: "rgba(255, 255, 255, 0.08)",
@@ -205,6 +225,7 @@ async function relaunchApp() {
         <NSpace justify="end">
           <NButton
             v-if="store.appUpdateStatus === 'available'"
+            class="update-action-primary"
             type="primary"
             @click="installUpdate"
           >
@@ -212,6 +233,7 @@ async function relaunchApp() {
           </NButton>
           <NButton
             v-if="store.appUpdateStatus === 'installed'"
+            class="update-action-primary"
             type="primary"
             @click="relaunchApp"
           >
@@ -237,7 +259,7 @@ async function relaunchApp() {
   height: 100vh;
   overflow: hidden;
   background:
-    radial-gradient(ellipse 72% 56% at 0% 0%, rgba(38, 77, 75, 0.32), transparent 66%),
+    radial-gradient(ellipse 72% 56% at 0% 0%, rgba(22, 158, 196, 0.364), transparent 66%),
     radial-gradient(ellipse 62% 48% at 98% 0%, rgba(29, 51, 82, 0.34), transparent 70%),
     radial-gradient(ellipse 72% 42% at 52% 10%, rgba(23, 40, 57, 0.3), transparent 76%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0) 38%),
@@ -452,6 +474,13 @@ async function relaunchApp() {
   color: var(--color-text-secondary);
   font-size: 13px;
   line-height: 1.5;
+}
+
+:deep(.update-action-primary.n-button) {
+  --n-text-color: #edf4fb !important;
+  --n-text-color-hover: #edf4fb !important;
+  --n-text-color-pressed: #edf4fb !important;
+  --n-text-color-focus: #edf4fb !important;
 }
 
 @keyframes updatePulse {

@@ -643,11 +643,11 @@ async function onDrop(e: DragEvent) {
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.035) 46%, rgba(112, 133, 151, 0.055)),
     var(--glass-panel);
-  box-shadow:
+  /* box-shadow:
     var(--glass-shadow),
-    inset 0 1px 0 var(--glass-highlight);
-  backdrop-filter: blur(32px) saturate(165%);
-  -webkit-backdrop-filter: blur(32px) saturate(165%);
+    inset 0 1px 0 var(--glass-highlight); */
+  /* backdrop-filter: blur(32px) saturate(165%);
+  -webkit-backdrop-filter: blur(32px) saturate(165%); */
 }
 
 .command-strip {
@@ -814,11 +814,14 @@ async function onDrop(e: DragEvent) {
   flex-direction: column;
   gap: 12px;
   padding: 16px;
-  border: 1px solid rgba(112, 133, 151, 0.09);
+  border: 1px solid rgba(164, 196, 215, 0.22);
   border-radius: 15px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.052), rgba(255, 255, 255, 0.022)),
-    rgba(13, 12, 14, 0.36);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.068), rgba(255, 255, 255, 0.026)),
+    rgba(13, 18, 24, 0.48);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.035),
+    0 10px 26px rgba(0, 0, 0, 0.16);
   color: inherit;
   text-align: left;
   cursor: grab;
@@ -831,16 +834,19 @@ async function onDrop(e: DragEvent) {
 
 .project-row:hover,
 .project-row.selected {
-  border-color: rgba(112, 133, 151, 0.3);
+  border-color: rgba(164, 196, 215, 0.42);
   background:
-    linear-gradient(180deg, rgba(112, 133, 151, 0.08), rgba(255, 255, 255, 0.026)),
-    rgba(17, 14, 16, 0.5);
+    linear-gradient(180deg, rgba(112, 133, 151, 0.11), rgba(255, 255, 255, 0.032)),
+    rgba(17, 22, 29, 0.58);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.055),
+    0 14px 34px rgba(0, 0, 0, 0.2);
 }
 
 .project-row.selected {
   box-shadow:
-    inset 0 0 0 1px rgba(112, 133, 151, 0.06),
-    0 18px 48px rgba(112, 133, 151, 0.12);
+    inset 0 0 0 1px rgba(164, 196, 215, 0.18),
+    0 18px 48px rgba(112, 133, 151, 0.16);
 }
 
 .project-row.dragging {

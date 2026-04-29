@@ -16,12 +16,99 @@ const xtermEl = ref<HTMLDivElement | null>(null);
 const autoScroll = ref(true);
 const terminalInput = ref("");
 const inputError = ref("");
+const TERMINAL_WIDTH_STORAGE_KEY = "prostation:terminal-panel-width";
+const MIN_TERMINAL_WIDTH = 280;
+const MAX_TERMINAL_WIDTH = 720;
 let terminal: Terminal | null = null;
 let fitAddon: FitAddon | null = null;
 let renderedOutputCount = 0;
 let pendingWrites: string[] = [];
 let writeRafScheduled = false;
+let resizeFrame = 0;
 const LINK_RE = /\b(?:https?:\/\/|www\.|localhost(?::\d+)?(?:\/[^\s]*)?|127\.0\.0\.1(?::\d+)?(?:\/[^\s]*)?)(?:[^\s<>"']*)/gi;
+
+function maxTerminalWidth() {
+  return Math.max(MIN_TERMINAL_WIDTH, Math.min(MAX_TERMINAL_WIDTH, window.innerWidth - 420));
+}
+
+function clampTerminalWidth(width: number) {
+  return Math.min(maxTerminalWidth(), Math.max(MIN_TERMINAL_WIDTH, Math.round(width)));
+}
+
+function initialTerminalWidth() {
+  const stored = Number(window.localStorage.getItem(TERMINAL_WIDTH_STORAGE_KEY));
+  if (Number.isFinite(stored) && stored > 0) {
+    return clampTerminalWidth(stored);
+  }
+  return clampTerminalWidth(window.innerWidth * 0.34);
+}
+
+const terminalPanelWidth = ref(initialTerminalWidth());
+const isResizingTerminal = ref(false);
+const terminalPanelStyle = computed(() => ({
+  width: `${terminalPanelWidth.value}px`,
+}));
+
+function scheduleTerminalFit() {
+  if (resizeFrame) return;
+  resizeFrame = window.requestAnimationFrame(() => {
+    resizeFrame = 0;
+    fitTerminal();
+    syncPtySize();
+  });
+}
+
+function setTerminalWidth(width: number) {
+  terminalPanelWidth.value = clampTerminalWidth(width);
+  window.localStorage.setItem(TERMINAL_WIDTH_STORAGE_KEY, String(terminalPanelWidth.value));
+  scheduleTerminalFit();
+}
+
+function stopTerminalResize() {
+  if (!isResizingTerminal.value) return;
+  isResizingTerminal.value = false;
+  document.documentElement.style.cursor = "";
+  document.documentElement.style.userSelect = "";
+  window.removeEventListener("pointermove", onTerminalResizeMove);
+  window.removeEventListener("pointerup", stopTerminalResize);
+  window.removeEventListener("pointercancel", stopTerminalResize);
+}
+
+function onTerminalResizeMove(event: PointerEvent) {
+  setTerminalWidth(window.innerWidth - event.clientX);
+}
+
+function startTerminalResize(event: PointerEvent) {
+  if (event.button !== 0) return;
+  event.preventDefault();
+  isResizingTerminal.value = true;
+  document.documentElement.style.cursor = "col-resize";
+  document.documentElement.style.userSelect = "none";
+  window.addEventListener("pointermove", onTerminalResizeMove);
+  window.addEventListener("pointerup", stopTerminalResize);
+  window.addEventListener("pointercancel", stopTerminalResize);
+}
+
+function resizeTerminalWithKeyboard(event: KeyboardEvent) {
+  if (event.key === "ArrowLeft") {
+    event.preventDefault();
+    setTerminalWidth(terminalPanelWidth.value + 24);
+  } else if (event.key === "ArrowRight") {
+    event.preventDefault();
+    setTerminalWidth(terminalPanelWidth.value - 24);
+  } else if (event.key === "Home") {
+    event.preventDefault();
+    setTerminalWidth(MIN_TERMINAL_WIDTH);
+  } else if (event.key === "End") {
+    event.preventDefault();
+    setTerminalWidth(maxTerminalWidth());
+  }
+}
+
+function handleWindowResize() {
+  terminalPanelWidth.value = clampTerminalWidth(terminalPanelWidth.value);
+  fitTerminal();
+}
 
 type TerminalLink = {
   text: string;
@@ -370,12 +457,17 @@ onMounted(() => {
   initTerminal();
   renderTerminalFromStore(true);
   window.addEventListener("prostation-process-output", processOutputListener);
-  window.addEventListener("resize", fitTerminal);
+  window.addEventListener("resize", handleWindowResize);
 });
 
 onBeforeUnmount(() => {
+  stopTerminalResize();
+  if (resizeFrame) {
+    window.cancelAnimationFrame(resizeFrame);
+    resizeFrame = 0;
+  }
   window.removeEventListener("prostation-process-output", processOutputListener);
-  window.removeEventListener("resize", fitTerminal);
+  window.removeEventListener("resize", handleWindowResize);
   terminal?.dispose();
   terminal = null;
   fitAddon = null;
@@ -383,7 +475,18 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <aside class="terminal-panel">
+  <aside class="terminal-panel" :class="{ resizing: isResizingTerminal }" :style="terminalPanelStyle">
+    <div
+      class="terminal-resize-handle"
+      role="separator"
+      tabindex="0"
+      aria-orientation="vertical"
+      :aria-valuemin="MIN_TERMINAL_WIDTH"
+      :aria-valuemax="maxTerminalWidth()"
+      :aria-valuenow="terminalPanelWidth"
+      @pointerdown="startTerminalResize"
+      @keydown="resizeTerminalWithKeyboard"
+    ></div>
     <div class="terminal-topbar">
       <div class="terminal-title">
         <span class="eyebrow">{{ t("terminal.title") }}</span>
@@ -484,8 +587,10 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .terminal-panel {
-  min-width: 260px;
-  width: clamp(260px, 34vw, 360px);
+  position: relative;
+  flex: 0 0 auto;
+  min-width: 280px;
+  max-width: 720px;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -498,6 +603,41 @@ onBeforeUnmount(() => {
     -24px 0 70px rgba(0, 0, 0, 0.24);
   backdrop-filter: blur(28px) saturate(160%);
   -webkit-backdrop-filter: blur(28px) saturate(160%);
+}
+
+.terminal-resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -5px;
+  z-index: 5;
+  width: 10px;
+  border: 0;
+  background: transparent;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.terminal-resize-handle::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 4px;
+  width: 1px;
+  content: "";
+  background: rgba(164, 196, 215, 0);
+  transition: background 0.14s ease, box-shadow 0.14s ease;
+}
+
+.terminal-resize-handle:hover::before,
+.terminal-resize-handle:focus-visible::before,
+.terminal-panel.resizing .terminal-resize-handle::before {
+  background: rgba(164, 196, 215, 0.72);
+  box-shadow: 0 0 18px rgba(164, 196, 215, 0.36);
+}
+
+.terminal-resize-handle:focus-visible {
+  outline: none;
 }
 
 .terminal-topbar {
