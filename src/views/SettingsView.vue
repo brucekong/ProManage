@@ -84,7 +84,7 @@ async function saveAndCheckUpdates() {
       </div>
     </section>
 
-    <section class="setting-group">
+    <!-- <section class="setting-group">
       <h3>{{ t("settings.appearance") }}</h3>
       <div class="setting-row">
         <label>{{ t("settings.theme") }}</label>
@@ -103,7 +103,7 @@ async function saveAndCheckUpdates() {
           @update:value="applyLanguage"
         />
       </div>
-    </section>
+    </section> -->
 
     <section class="setting-group">
       <h3>{{ t("settings.logging") }}</h3>
@@ -147,7 +147,7 @@ async function saveAndCheckUpdates() {
         <label>{{ t("settings.autoUpdates") }}</label>
         <input v-model="form.auto_check_updates" type="checkbox" class="setting-checkbox" />
       </div>
-      <div class="setting-row setting-row-stack">
+      <!-- <div class="setting-row setting-row-stack">
         <label>{{ t("settings.updateFeed") }}</label>
         <input
           v-model="form.update_endpoint"
@@ -164,7 +164,7 @@ async function saveAndCheckUpdates() {
           rows="5"
           :placeholder="t('settings.publicKeyPlaceholder')"
         />
-      </div>
+      </div> -->
       <div class="setting-actions">
         <button class="btn-secondary" @click="saveAndCheckUpdates">
           {{ t("settings.checkUpdates") }}

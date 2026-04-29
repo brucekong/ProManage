@@ -681,20 +681,24 @@ onBeforeUnmount(() => {
 }
 
 .terminal-status.running {
-  border-color: rgba(131, 230, 177, 0.34);
-  color: var(--color-green);
-  box-shadow: 0 0 22px rgba(131, 230, 177, 0.12);
+  border-color: rgba(130, 240, 189, 0.48);
+  color: #9af4c9;
+  background: rgba(130, 240, 189, 0.1);
+  box-shadow: 0 0 22px rgba(130, 240, 189, 0.2);
 }
 
 .terminal-status.starting {
-  border-color: rgba(112, 133, 151, 0.34);
-  color: var(--color-primary);
-  box-shadow: 0 0 22px rgba(112, 133, 151, 0.12);
+  border-color: rgba(164, 196, 215, 0.48);
+  color: #c7dfef;
+  background: rgba(164, 196, 215, 0.1);
+  box-shadow: 0 0 22px rgba(164, 196, 215, 0.18);
 }
 
 .terminal-status.error {
-  border-color: rgba(255, 109, 130, 0.34);
-  color: var(--color-red);
+  border-color: rgba(255, 95, 122, 0.52);
+  color: #ff8da0;
+  background: rgba(255, 95, 122, 0.1);
+  box-shadow: 0 0 22px rgba(255, 95, 122, 0.18);
 }
 
 .terminal-meta {
@@ -791,11 +795,13 @@ onBeforeUnmount(() => {
 }
 
 .terminal-tab.running strong {
-  color: var(--color-green);
+  color: #9af4c9;
+  text-shadow: 0 0 12px rgba(130, 240, 189, 0.32);
 }
 
 .terminal-tab.starting strong {
-  color: var(--color-primary);
+  color: #c7dfef;
+  text-shadow: 0 0 12px rgba(164, 196, 215, 0.28);
 }
 
 .terminal-tab strong {

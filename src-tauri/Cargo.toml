@@ -1,6 +1,6 @@
 [package]
 name = "pro-station"
-version = "0.1.14"
+version = "0.1.15"
 description = "Frontend Multi-Project Management Tool"
 authors = ["you"]
 edition = "2021"

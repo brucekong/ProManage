@@ -402,6 +402,24 @@ async function onDrop(e: DragEvent) {
     <header class="command-strip">
       <div class="title-block">
         <h2>{{ t("project.title") }}</h2>
+        <!-- <div class="header-metrics">
+          <div class="header-metric running">
+            <span>{{ t("metric.running") }}</span>
+            <strong>{{ store.runningCount }}</strong>
+          </div>
+          <div class="header-metric stopped">
+            <span>{{ t("metric.stopped") }}</span>
+            <strong>{{ store.stoppedCount }}</strong>
+          </div>
+          <div class="header-metric error">
+            <span>{{ t("metric.error") }}</span>
+            <strong>{{ store.errorCount }}</strong>
+          </div>
+          <div class="header-metric total">
+            <span>{{ t("metric.total") }}</span>
+            <strong>{{ store.projects.length }}</strong>
+          </div>
+        </div> -->
       </div>
 
       <section class="ops-bar">
@@ -416,25 +434,6 @@ async function onDrop(e: DragEvent) {
         </button>
       </section>
     </header>
-
-    <section class="status-grid">
-      <div class="metric">
-        <span>{{ t("metric.running") }}</span>
-        <strong>{{ store.runningCount }}</strong>
-      </div>
-      <div class="metric">
-        <span>{{ t("metric.stopped") }}</span>
-        <strong>{{ store.stoppedCount }}</strong>
-      </div>
-      <div class="metric">
-        <span>{{ t("metric.error") }}</span>
-        <strong>{{ store.errorCount }}</strong>
-      </div>
-      <div class="metric">
-        <span>{{ t("metric.total") }}</span>
-        <strong>{{ store.projects.length }}</strong>
-      </div>
-    </section>
 
     <div v-if="dragOver" class="drop-overlay">
       <div class="drop-hint">{{ t("project.dropHint") }}</div>
@@ -636,7 +635,6 @@ async function onDrop(e: DragEvent) {
 }
 
 .command-strip,
-.status-grid,
 .project-table,
 .empty-state {
   border: 1px solid var(--glass-border);
@@ -654,7 +652,7 @@ async function onDrop(e: DragEvent) {
   position: relative;
   overflow: hidden;
   display: grid;
-  grid-template-columns: minmax(220px, 0.7fr) minmax(360px, 1.4fr);
+  grid-template-columns: minmax(100px, 1.05fr) minmax(360px, 1.1fr);
   gap: 18px;
   align-items: center;
   padding: 20px;
@@ -667,13 +665,16 @@ async function onDrop(e: DragEvent) {
   height: 160px;
   content: "";
   pointer-events: none;
-  /* background: radial-gradient(ellipse at center, rgba(236, 111, 55, 0.24), transparent 68%); */
+  /* background: radial-gradient(ellipse at center, rgba(60, 73, 129, 0.263), transparent 68%); */
   filter: blur(22px);
 }
 
 .title-block {
   position: relative;
   min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 18px;
 }
 
 .section-kicker {
@@ -685,10 +686,72 @@ async function onDrop(e: DragEvent) {
 }
 
 .title-block h2 {
+  flex: 0 0 auto;
   color: var(--color-text);
   font-size: 24px;
   line-height: 1.1;
   font-weight: 760;
+}
+
+.header-metrics {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(72px, 1fr));
+  gap: 8px;
+  flex: 1;
+}
+
+.header-metric {
+  min-width: 0;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid rgba(112, 133, 151, 0.16);
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.022)),
+    rgba(10, 18, 26, 0.34);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.header-metric span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-muted);
+  font-size: 10px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.header-metric strong {
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.header-metric.running {
+  border-color: rgba(130, 240, 189, 0.28);
+  background:
+    linear-gradient(180deg, rgba(130, 240, 189, 0.12), rgba(255, 255, 255, 0.022)),
+    rgba(10, 18, 26, 0.34);
+}
+
+.header-metric.running strong {
+  color: #9af4c9;
+}
+
+.header-metric.error {
+  border-color: rgba(255, 95, 122, 0.3);
+}
+
+.header-metric.error strong {
+  color: #ff8da0;
 }
 
 .ops-bar {
@@ -765,34 +828,6 @@ async function onDrop(e: DragEvent) {
   color: var(--color-red);
 }
 
-.status-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1px;
-  overflow: hidden;
-  border-radius: 18px;
-}
-
-.metric {
-  min-width: 0;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.018);
-}
-
-.metric span {
-  display: block;
-  color: var(--color-muted);
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.metric strong {
-  color: var(--color-text);
-  font-family: var(--font-mono);
-  font-size: 24px;
-}
-
 .project-table {
   flex: 1;
   min-height: 0;
@@ -863,28 +898,30 @@ async function onDrop(e: DragEvent) {
 
 .status-rail {
   position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 10px;
-  height: 10px;
+  top: 15px;
+  right: 15px;
+  width: 12px;
+  height: 12px;
   min-height: 0;
   border-radius: 999px;
-  background: var(--color-muted);
-  box-shadow: 0 0 0 3px rgba(112, 135, 150, 0.12);
+  background: #8da3b3;
+  box-shadow:
+    0 0 0 3px rgba(141, 163, 179, 0.18),
+    0 0 16px rgba(141, 163, 179, 0.34);
 }
 
 .project-row.running .status-rail {
-  background: var(--color-green);
+  background: #82f0bd;
   box-shadow:
-    0 0 0 4px rgba(124, 226, 188, 0.12),
-    0 0 18px rgba(124, 226, 188, 0.52);
+    0 0 0 4px rgba(130, 240, 189, 0.22),
+    0 0 22px rgba(130, 240, 189, 0.72);
 }
 
 .project-row.error .status-rail {
-  background: var(--color-red);
+  background: #ff5f7a;
   box-shadow:
-    0 0 0 4px rgba(255, 109, 130, 0.12),
-    0 0 18px rgba(255, 109, 130, 0.42);
+    0 0 0 4px rgba(255, 95, 122, 0.22),
+    0 0 22px rgba(255, 95, 122, 0.66);
 }
 
 .project-main,
@@ -1016,21 +1053,24 @@ async function onDrop(e: DragEvent) {
 }
 
 .project-status-chip.running {
-  border-color: rgba(124, 226, 188, 0.28);
-  color: var(--color-green);
-  background: rgba(124, 226, 188, 0.07);
+  border-color: rgba(130, 240, 189, 0.48);
+  color: #9af4c9;
+  background: rgba(130, 240, 189, 0.13);
+  box-shadow: 0 0 18px rgba(130, 240, 189, 0.16);
 }
 
 .project-status-chip.starting {
-  border-color: rgba(112, 133, 151, 0.28);
-  color: var(--color-primary);
-  background: rgba(112, 133, 151, 0.07);
+  border-color: rgba(164, 196, 215, 0.46);
+  color: #c7dfef;
+  background: rgba(164, 196, 215, 0.13);
+  box-shadow: 0 0 18px rgba(164, 196, 215, 0.14);
 }
 
 .project-status-chip.error {
-  border-color: rgba(255, 109, 130, 0.28);
-  color: var(--color-red);
-  background: rgba(255, 109, 130, 0.07);
+  border-color: rgba(255, 95, 122, 0.5);
+  color: #ff8da0;
+  background: rgba(255, 95, 122, 0.13);
+  box-shadow: 0 0 18px rgba(255, 95, 122, 0.16);
 }
 
 .project-title-text {
@@ -1186,24 +1226,32 @@ async function onDrop(e: DragEvent) {
 }
 
 .service-state-dot {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 999px;
-  background: rgba(112, 135, 150, 0.72);
+  background: rgba(141, 163, 179, 0.9);
+  box-shadow: 0 0 0 2px rgba(141, 163, 179, 0.14);
 }
 
 .service-state-dot.running {
-  background: var(--color-green);
-  box-shadow: 0 0 12px rgba(124, 226, 188, 0.42);
+  background: #82f0bd;
+  box-shadow:
+    0 0 0 2px rgba(130, 240, 189, 0.2),
+    0 0 14px rgba(130, 240, 189, 0.68);
 }
 
 .service-state-dot.starting {
-  background: var(--color-primary);
-  box-shadow: 0 0 12px rgba(112, 133, 151, 0.42);
+  background: #bfd8e8;
+  box-shadow:
+    0 0 0 2px rgba(164, 196, 215, 0.2),
+    0 0 14px rgba(164, 196, 215, 0.62);
 }
 
 .service-state-dot.error {
-  background: var(--color-red);
+  background: #ff5f7a;
+  box-shadow:
+    0 0 0 2px rgba(255, 95, 122, 0.2),
+    0 0 14px rgba(255, 95, 122, 0.62);
 }
 
 .inline-run {
@@ -1393,6 +1441,16 @@ async function onDrop(e: DragEvent) {
 @container (max-width: 520px) {
   .command-strip {
     grid-template-columns: 1fr;
+  }
+
+  .title-block {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .header-metrics {
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .ops-bar {
