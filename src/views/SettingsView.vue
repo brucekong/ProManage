@@ -38,6 +38,12 @@ async function applyLanguage(value: string) {
   await store.updateAppConfig({ ...form, language });
 }
 
+async function applyTheme(value: string) {
+  const theme = value === "light" || value === "dark" ? value : "system";
+  form.theme = theme;
+  await store.updateAppConfig({ ...form, theme });
+}
+
 async function saveAndCheckUpdates() {
   await save();
   await store.checkForAppUpdate();
@@ -92,6 +98,7 @@ async function saveAndCheckUpdates() {
           v-model:value="form.theme"
           :options="themeOptions"
           class="setting-select"
+          @update:value="applyTheme"
         />
       </div>
       <div class="setting-row">
@@ -143,28 +150,6 @@ async function saveAndCheckUpdates() {
 
     <section class="setting-group">
       <h3>{{ t("settings.updates") }}</h3>
-      <div class="setting-row">
-        <label>{{ t("settings.autoUpdates") }}</label>
-        <input v-model="form.auto_check_updates" type="checkbox" class="setting-checkbox" />
-      </div>
-      <div class="setting-row setting-row-stack">
-        <label>{{ t("settings.updateFeed") }}</label>
-        <input
-          v-model="form.update_endpoint"
-          type="text"
-          class="setting-input setting-input-wide"
-          placeholder="https://github.com/brucekong/ProManage/releases/latest/download/latest.json"
-        />
-      </div>
-      <div class="setting-row setting-row-stack">
-        <label>{{ t("settings.publicKey") }}</label>
-        <textarea
-          v-model="form.updater_pubkey"
-          class="setting-textarea"
-          rows="5"
-          :placeholder="t('settings.publicKeyPlaceholder')"
-        />
-      </div>
       <div class="setting-actions">
         <button class="btn-secondary" @click="saveAndCheckUpdates">
           {{ t("settings.checkUpdates") }}

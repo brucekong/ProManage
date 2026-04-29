@@ -7,28 +7,55 @@
 }
 
 :root {
-  --color-bg: #060b13;
-  --color-surface: rgba(13, 23, 34, 0.72);
-  --color-text: #edf4fb;
-  --color-text-secondary: #c8d5df;
-  --color-muted: #7f909e;
-  --color-border: rgba(112, 133, 151, 0.18);
-  --color-hover: rgba(112, 133, 151, 0.13);
-  --color-primary: #8fa7bd;
-  --color-cyan: #a4c4d7;
-  --color-green: #7fb5a2;
+  --color-bg: #111513;
+  --color-surface: rgba(21, 25, 24, 0.76);
+  --color-text: #f4f2ea;
+  --color-text-secondary: #d3d0c6;
+  --color-muted: #8f9892;
+  --color-border: rgba(194, 212, 208, 0.15);
+  --color-hover: rgba(44, 211, 224, 0.1);
+  --color-primary: #35d1df;
+  --color-cyan: #b8f2f6;
+  --color-green: #76c893;
   --color-red: #ff4568;
-  --color-orange: #ffb02e;
-  --color-purple: #6f7d99;
-  --glow-warm: rgba(112, 133, 151, 0.34);
+  --color-orange: #ffc131;
+  --color-purple: #b98cff;
+  --glow-warm: rgba(255, 193, 49, 0.24);
   --glow-rose: rgba(255, 69, 104, 0.2);
-  --glow-violet: rgba(75, 95, 116, 0.18);
-  --glass-panel: rgba(11, 20, 29, 0.64);
-  --glass-panel-strong: rgba(16, 26, 36, 0.74);
-  --glass-field: rgba(255, 255, 255, 0.08);
-  --glass-highlight: rgba(255, 255, 255, 0.16);
-  --glass-border: rgba(112, 133, 151, 0.22);
+  --glow-violet: rgba(35, 193, 205, 0.18);
+  --glass-panel: rgba(18, 22, 20, 0.7);
+  --glass-panel-strong: rgba(20, 24, 22, 0.84);
+  --glass-field: rgba(255, 255, 255, 0.06);
+  --glass-highlight: rgba(255, 242, 202, 0.12);
+  --glass-border: rgba(198, 220, 215, 0.16);
   --glass-shadow: 0 28px 90px rgba(0, 0, 0, 0.38);
+  --app-glow-start: rgba(255, 193, 49, 0.18);
+  --app-glow-end: rgba(35, 193, 205, 0.32);
+  --app-glow-center: rgba(33, 95, 92, 0.24);
+  --app-sheen: rgba(255, 244, 206, 0.025);
+  --app-edge-start: rgba(255, 193, 49, 0.08);
+  --app-edge-end: rgba(35, 193, 205, 0.15);
+  --app-bottom-fade: rgba(5, 7, 8, 0.76);
+  --app-grid-line: rgba(244, 242, 234, 0.045);
+  --sidebar-bg: rgba(18, 21, 20, 0.78);
+  --sidebar-border: rgba(198, 220, 215, 0.13);
+  --sidebar-shadow: rgba(0, 0, 0, 0.24);
+  --panel-gradient: linear-gradient(145deg, rgba(255, 244, 206, 0.1), rgba(53, 209, 223, 0.035) 46%, rgba(255, 193, 49, 0.035));
+  --control-bg: rgba(255, 244, 206, 0.055);
+  --control-bg-hover: rgba(53, 209, 223, 0.1);
+  --project-row-bg: linear-gradient(180deg, rgba(255, 244, 206, 0.052), rgba(53, 209, 223, 0.018)), rgba(18, 21, 19, 0.52);
+  --project-row-hover-bg: linear-gradient(180deg, rgba(53, 209, 223, 0.08), rgba(255, 193, 49, 0.028)), rgba(20, 24, 22, 0.66);
+  --project-row-border: rgba(198, 220, 215, 0.2);
+  --project-row-shadow: 0 14px 32px rgba(0, 0, 0, 0.12);
+  --service-row-bg: rgba(255, 244, 206, 0.035);
+  --service-row-hover-bg: rgba(53, 209, 223, 0.07);
+  --tooltip-bg: rgba(20, 24, 22, 0.98);
+  --tooltip-text: #f4f2ea;
+  --terminal-panel-bg: radial-gradient(ellipse 90% 42% at 50% 0%, rgba(53, 209, 223, 0.16), transparent 72%), linear-gradient(180deg, rgba(18, 27, 26, 0.86), rgba(11, 13, 12, 0.9));
+  --terminal-panel-shadow: rgba(0, 0, 0, 0.24);
+  --terminal-output-bg: radial-gradient(ellipse 90% 34% at 50% 0%, rgba(53, 209, 223, 0.08), transparent 70%), linear-gradient(180deg, rgba(255, 244, 206, 0.02), transparent);
+  --terminal-input-bg: rgba(8, 12, 11, 0.62);
+  --on-primary-text: #071315;
   --font-mono: "SF Mono", "JetBrains Mono", "Fira Code", "Menlo", monospace;
 
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
@@ -39,6 +66,58 @@
   background-color: var(--color-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+:root[data-theme="light"] {
+  --color-bg: #f5f1e7;
+  --color-surface: rgba(255, 252, 242, 0.82);
+  --color-text: #172320;
+  --color-text-secondary: #415650;
+  --color-muted: #75827c;
+  --color-border: rgba(38, 104, 105, 0.2);
+  --color-hover: rgba(32, 169, 180, 0.1);
+  --color-primary: #159eab;
+  --color-cyan: #0e7882;
+  --color-green: #4b9270;
+  --color-red: #d83d5b;
+  --color-orange: #c88a16;
+  --color-purple: #7f63b8;
+  --glow-warm: rgba(255, 193, 49, 0.28);
+  --glow-rose: rgba(216, 61, 91, 0.13);
+  --glow-violet: rgba(32, 169, 180, 0.16);
+  --glass-panel: rgba(255, 252, 242, 0.7);
+  --glass-panel-strong: rgba(255, 252, 242, 0.88);
+  --glass-field: rgba(255, 252, 242, 0.74);
+  --glass-highlight: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(38, 104, 105, 0.18);
+  --glass-shadow: 0 24px 70px rgba(51, 68, 58, 0.14);
+  --app-glow-start: rgba(255, 193, 49, 0.22);
+  --app-glow-end: rgba(32, 169, 180, 0.18);
+  --app-glow-center: rgba(255, 252, 242, 0.7);
+  --app-sheen: rgba(255, 252, 242, 0.74);
+  --app-edge-start: rgba(255, 193, 49, 0.12);
+  --app-edge-end: rgba(32, 169, 180, 0.1);
+  --app-bottom-fade: rgba(225, 236, 226, 0.42);
+  --app-grid-line: rgba(38, 104, 105, 0.055);
+  --sidebar-bg: rgba(255, 252, 242, 0.72);
+  --sidebar-border: rgba(38, 104, 105, 0.16);
+  --sidebar-shadow: rgba(51, 68, 58, 0.12);
+  --panel-gradient: linear-gradient(145deg, rgba(255, 252, 242, 0.84), rgba(239, 249, 248, 0.62) 48%, rgba(255, 244, 203, 0.56));
+  --control-bg: rgba(255, 252, 242, 0.74);
+  --control-bg-hover: rgba(232, 247, 246, 0.88);
+  --project-row-bg: linear-gradient(180deg, rgba(255, 252, 242, 0.9), rgba(244, 250, 247, 0.78));
+  --project-row-hover-bg: linear-gradient(180deg, rgba(255, 252, 242, 0.98), rgba(229, 247, 246, 0.88));
+  --project-row-border: rgba(38, 104, 105, 0.28);
+  --project-row-shadow: 0 10px 24px rgba(50, 74, 67, 0.11);
+  --service-row-bg: rgba(255, 252, 242, 0.7);
+  --service-row-hover-bg: rgba(232, 247, 246, 0.9);
+  --tooltip-bg: rgba(255, 252, 242, 0.98);
+  --tooltip-text: #172320;
+  --terminal-panel-bg: radial-gradient(ellipse 92% 40% at 50% 0%, rgba(32, 169, 180, 0.14), transparent 72%), linear-gradient(180deg, rgba(250, 249, 240, 0.9), rgba(229, 239, 232, 0.9));
+  --terminal-panel-shadow: rgba(51, 68, 58, 0.12);
+  --terminal-output-bg: radial-gradient(ellipse 90% 34% at 50% 0%, rgba(32, 169, 180, 0.08), transparent 70%), linear-gradient(180deg, rgba(255, 252, 242, 0.5), transparent);
+  --terminal-input-bg: rgba(255, 252, 242, 0.74);
+  --on-primary-text: #071315;
 }
 
 html,
@@ -63,12 +142,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(112, 133, 151, 0.2);
+  background: rgba(53, 209, 223, 0.18);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(112, 133, 151, 0.34);
+  background: rgba(53, 209, 223, 0.34);
 }
 
 /* Focus styles */
@@ -93,12 +172,12 @@ body {
   overflow: hidden;
   /* border: 1px solid var(--glass-border); */
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.035) 38%, rgba(112, 133, 151, 0.07)),
+    linear-gradient(135deg, rgba(255, 244, 206, 0.12), rgba(255, 255, 255, 0.035) 38%, rgba(53, 209, 223, 0.06)),
     var(--glass-panel-strong);
   box-shadow:
     var(--glass-shadow),
     inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    inset 0 -1px 0 rgba(112, 133, 151, 0.1);
+    inset 0 -1px 0 rgba(53, 209, 223, 0.1);
   backdrop-filter: blur(34px) saturate(170%);
   -webkit-backdrop-filter: blur(34px) saturate(170%);
 }
@@ -145,10 +224,10 @@ body {
 
 .glass-modal .n-input,
 .glass-modal .n-base-selection {
-  border-color: rgba(112, 133, 151, 0.16);
+  border-color: rgba(53, 209, 223, 0.16);
 }
 
 .glass-modal .n-input:hover,
 .glass-modal .n-base-selection:hover {
-  border-color: rgba(164, 196, 215, 0.34);
+  border-color: rgba(53, 209, 223, 0.34);
 }
