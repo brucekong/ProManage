@@ -1,24 +1,12 @@
 <script setup lang="ts">
 import { useProjectStore } from "../stores/project";
-import { computed, reactive, watch } from "vue";
-import { NSelect } from "naive-ui";
+import { reactive, watch } from "vue";
 import { useI18n } from "../i18n";
 
 const store = useProjectStore();
 const { t } = useI18n();
 
 const form = reactive({ ...store.config });
-
-const themeOptions = computed(() => [
-  { label: t("settings.system"), value: "system" },
-  { label: t("settings.light"), value: "light" },
-  { label: t("settings.dark"), value: "dark" },
-]);
-
-const languageOptions = computed(() => [
-  { label: t("settings.english"), value: "en" },
-  { label: t("settings.chinese"), value: "zh" },
-]);
 
 watch(
   () => store.config,
@@ -32,11 +20,7 @@ async function save() {
   await store.updateAppConfig({ ...form });
 }
 
-async function applyLanguage(value: string) {
-  const language = value === "zh" ? "zh" : "en";
-  form.language = language;
-  await store.updateAppConfig({ ...form, language });
-}
+
 
 async function saveAndCheckUpdates() {
   await save();
